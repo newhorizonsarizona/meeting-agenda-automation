@@ -9,6 +9,7 @@ requests-oauthlib = "*"
 openpyxl = "*"
 msal = "*"
 httpx = "*"
+msgraph-sdk = "*"
 
 [dev-packages]
 requests = "*"
@@ -16,6 +17,7 @@ requests-oauthlib = "*"
 openpyxl = "*"
 msal = "*"
 httpx = "*"
+msgraph-sdk = "*"
 
 [requires]
 python_version = "3.11"
