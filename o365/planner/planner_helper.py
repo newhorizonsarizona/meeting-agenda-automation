@@ -31,8 +31,8 @@ class PlannerHelper:
         scopes = ['https://graph.microsoft.com/.default']
         graph_client = GraphServiceClient(credentials=credential, scopes=scopes)
         try:
-            tasks = await graph_client.planner.plans.by_plan_id(plan_id).tasks.get()
-            print(tasks)
+            tasks = await graph_client.planner.plans.by_planner_plan_id(plan_id).tasks.get()
+            return tasks
         except APIError as e:
             print(f'Error: {e.error.message}')
 
@@ -46,8 +46,8 @@ class PlannerHelper:
         scopes = ['https://graph.microsoft.com/.default']
         graph_client = GraphServiceClient(credentials=credential, scopes=scopes)
         try:
-            tasks = await graph_client.planner.plans.by_plan_id(plan_id).buckets.get()
-            print(tasks)
+            buckets = await graph_client.planner.plans.by_planner_plan_id(plan_id).buckets.get()
+            return buckets
         except APIError as e:
             print(f'Error: {e.error.message}')
 
@@ -60,7 +60,7 @@ class PlannerHelper:
         scopes = ['https://graph.microsoft.com/.default']
         graph_client = GraphServiceClient(credentials=credential, scopes=scopes)
         try:
-            tasks = await graph_client.planner.buckets.by_bucket_id(bucket_id).tasks.get()
-            print(tasks)
+            tasks = await graph_client.planner.buckets.by_planner_bucket_id(bucket_id).tasks.get()
+            return tasks
         except APIError as e:
             print(f'Error: {e.error.message}')
