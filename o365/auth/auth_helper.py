@@ -1,6 +1,7 @@
 import os
 from msal import ConfidentialClientApplication
 from azure.identity.aio import ClientSecretCredential
+from msgraph import GraphServiceClient
 
 tenant_id = '9add987e-b316-43b4-8750-4007763832b0'
 client_id = '68e11217-f842-4df4-8720-75a08c58f491'
@@ -34,3 +35,13 @@ class AuthHelper:
                                                 client_secret,
                                             )
         return credential
+
+    @staticmethod
+    def graph_service_client():
+        """
+        Get the graph service client
+        """
+        credential : ClientSecretCredential = AuthHelper.client_service_credential()
+        scopes = ['https://graph.microsoft.com/.default']
+        graph_client = GraphServiceClient(credentials=credential, scopes=scopes)
+        return graph_client
