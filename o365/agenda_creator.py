@@ -84,7 +84,7 @@ class AgendaCreator:
         assigned_to_user = None
         while retry_count < 5:
             try:
-                print(f'Getting the assigned to user for task: {task.id})')
+                print(f'Getting the assigned to user for task: {task.title})')
                 assigned_to_users = list(task.assignments.additional_data.keys())
                 if assigned_to_users is not None and len(assigned_to_users) > 0:
                     assigned_to_user_id = list(task.assignments.additional_data.keys())[0]
@@ -96,7 +96,7 @@ class AgendaCreator:
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(5)
+                        time.sleep(15)
                         retry_count = retry_count + 1
                     else:
                         print(e)
