@@ -16,12 +16,12 @@ class DriveHelper:
             print(f'Error: {e.error.message}')
 
     @staticmethod
-    # GET /drives/{drive-id}/root/search(q='{search-text}')
-    async def get_drive_items(graph_client: GraphServiceClient, drive_id: str, query: str):
-        """Gets the drive for the group"""
+    # GET /groups/{group-id}/drive/items/{item-id}
+    async def get_drive_item(graph_client: GraphServiceClient, drive_id: str, item_id: str):
+        """Gets the drive item for the drive id"""
         try:
-            print(f'Getting the drive items matching query {query}')
-            drive_items = await graph_client.drives.by_drive_id(drive_id).root.get().search(q=query).get()
-            return drive_items
+            print(f'Getting the drive item matching item id {item_id}')
+            drive_item = await graph_client.drives.by_drive_id(drive_id).items.by_drive_item_id(item_id).get()
+            return drive_item
         except APIError as e:
             print(f'Error: {e.error.message}')
