@@ -22,7 +22,8 @@ class AuthHelper:
             client_credential=client_secret
         )
         token = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-        return token
+        if token and token['access_token'] is not None:
+            return token['access_token']
     
     @staticmethod
     def client_service_credential():

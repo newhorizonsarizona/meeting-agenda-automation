@@ -6,6 +6,7 @@ from auth.auth_helper import AuthHelper
 from drive.drive_helper import DriveHelper
 from user.user_helper import UserHelper
 from planner.planner_helper import PlannerHelper
+from graph.graph_helper import GraphHelper
     
 group_ids = ['1ab26305-df89-435b-802d-4f223a037771','aa235df6-19fc-4de3-8498-202b5cbe2d15']
 
@@ -30,8 +31,8 @@ class AgendaCreator:
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 3:
-                        time.sleep(15)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -54,8 +55,8 @@ class AgendaCreator:
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -74,8 +75,8 @@ class AgendaCreator:
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -99,8 +100,8 @@ class AgendaCreator:
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -119,8 +120,8 @@ class AgendaCreator:
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -141,14 +142,16 @@ class AgendaCreator:
                             print(f'Getting the children for path: {child.name}')
                             children = asyncio.run(DriveHelper.get_children_by_item(graph_client, drive_id, child.id))
                             if len(path_items) > 1:
-                                children = self._get_children_for_path(graph_client, drive_id, children, path_items[1])
+                                next_path = '/'.join(path_items[1:])
+                                print(f'Looking in {next_path}')
+                                children = self._get_children_for_path(graph_client, drive_id, children, next_path)
                             #print(children)
                 return children
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15*retry_count)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -162,21 +165,24 @@ class AgendaCreator:
             try:
                 #print(f'Getting the children for path: {path}')
                 path_items = path.split('/')
+                print(path_items)
                 if path_items:
                     children = asyncio.run(DriveHelper.get_children_by_item(graph_client, drive_id, item_id))
                     for child in children.value:
                         print(f'Getting the child: {child.name}, matching with path {path_items[0]}')
                         if child.name == path_items[0]:
                             print(f'The item id for {child.name} is {child.id}')
-                            if len(path_items) > 1:
-                                drive_item_id = self._get_drive_item_id_for_path(graph_client, drive_id, child.id, path_items[1])
                             drive_item_id = child.id
+                            if len(path_items) > 1:
+                                next_path = '/'.join(path_items[1:])
+                                print(f'Looking in {next_path}')
+                                drive_item_id = self._get_drive_item_id_for_path(graph_client, drive_id, child.id, next_path)
                         return drive_item_id
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15*retry_count)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
@@ -188,7 +194,7 @@ class AgendaCreator:
         drive_item_id = None
         while retry_count < 3:
             try:
-                print(f'Getting the weekly meeting channel children for drive: {drive_id}')
+                print(f'Getting the drive item id for drive: {drive_id}')
                 root_children = asyncio.run(DriveHelper.get_children_by_path(graph_client, drive_id)) # 3 = Weekly Meeting Channel id
                 if root_children and root_children.value:
                     for root_child in root_children.value:
@@ -197,17 +203,82 @@ class AgendaCreator:
                             print(f'Getting the item id for path: {path}')
                             drive_item_id = root_child.id
                             if len(path_items) > 1:
-                                drive_item_id = self._get_drive_item_id_for_path(graph_client, drive_id, drive_item_id, path)
+                                next_path = '/'.join(path_items[1:])
+                                print(f'Looking in {next_path}')
+                                drive_item_id = self._get_drive_item_id_for_path(graph_client, drive_id, drive_item_id, next_path)
                             return drive_item_id
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:
-                        time.sleep(15*retry_count)
                         retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
                     else:
                         print(e)
                         break # do something here, like log the error
         return drive_item_id
+    
+    def _create_weekly_meeting_docs(self, graph_client, drive_id, item_id, meeting_docs_folder):
+        """Create the weekly meeting docs folder"""
+        retry_count = 0
+        folder_item_id = None
+        while retry_count < 3:
+            try:
+                print(f'Creating the folder {meeting_docs_folder} for drive item: {item_id}')
+                folder_item = asyncio.run(DriveHelper.create_folder(graph_client, drive_id, item_id, meeting_docs_folder)) 
+                if folder_item and folder_item.value:
+                    return folder_item.value.id
+            except RuntimeError as e:
+                if 'Name already exists' in str(e):
+                    #if folder name already exists return
+                    return
+                elif "Event loop is closed" in str(e):
+                    if retry_count < 5:
+                        retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
+                    else:
+                        print(e)
+                        break # do something here, like log the error
+        return folder_item_id
+    
+    # GET /drives/{drive-id}/root/search(q=\'FolderName\')?$filter=folder ne null&$select=name,id'
+    def _search_item_with_name(self, drive_id: str, folder_name: str):
+        """Search the the drive id for matching folder"""
+        try:
+            print(f'Searching the folder matching {folder_name} in drive {drive_id}')
+            graph_helper: GraphHelper = GraphHelper()
+            item = graph_helper.get_request(f'/drives/{drive_id}/root/search(q=\'{folder_name}\')?$select=name,id', {'Content-Type': 'application/json'})
+            if item and item['value'] is not None:
+                for value in item['value']:
+                    if value['name'] == folder_name:
+                        print(f"Found folder {value['name']}")
+                        return value['id']
+        except Exception as e:
+            print(f'Error: {e}')
+        return None
+
+    # POST /drives/{drive-id}/items/{item-id}/copy'
+    def _copy_agenda_to_meeting_folder(self, graph_client, drive_id: str, template_item_id: str, meeting_folder_item_id: str):
+        """Copy agenda template to the meeting folder"""
+        retry_count = 0
+        agenda_item = None
+        while retry_count < 3:
+            try:
+                print(f'Copying the agenda template {template_item_id} to meeting folder: {meeting_folder_item_id}')
+                agenda_item = asyncio.run(DriveHelper.copy_item(graph_client, drive_id, template_item_id, meeting_folder_item_id, self._next_tuesday_meeting_agenda_excel)) 
+                if agenda_item and agenda_item.value:
+                    return agenda_item.value.id
+            except RuntimeError as e:
+                if 'Name already exists' in str(e):
+                    #if agenda already exists return
+                    return
+                elif "Event loop is closed" in str(e):
+                    if retry_count < 5:
+                        retry_count = retry_count + 1
+                        time.sleep(15*retry_count)
+                    else:
+                        print(e)
+                        break # do something here, like log the error
+        return agenda_item
     
     def create(self):
         """Get the planner tasks for next meeting"""
@@ -216,10 +287,17 @@ class AgendaCreator:
             graph_client = AuthHelper.graph_service_client()
             drive = self._get_drive(graph_client, 'aa235df6-19fc-4de3-8498-202b5cbe2d15')
             print(f'Drive id: {drive.id}')
-            wmc_drive_item_id = self._get_drive_item_id(graph_client, drive.id, 'Weekly Meeting Channel')
+            meeting_docs_folder = self._next_tuesday_meeting_docs
+            wmc_drive_item_id = self._search_item_with_name(drive.id, 'Weekly Meeting Channel')
             print(f'Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}')
-            ma_drive_item_id = self._get_drive_item_id(graph_client, drive.id, 'Meeting Automation')
-            print(f'Meeting Automation Drive Item Id: {ma_drive_item_id}')
+            meeting_docs_folder_item_id = self._search_item_with_name(drive.id, meeting_docs_folder)
+            if meeting_docs_folder_item_id is None:
+                meeting_docs_folder_item = self._create_weekly_meeting_docs(graph_client, drive.id, wmc_drive_item_id, meeting_docs_folder)
+                meeting_docs_folder_item_id = meeting_docs_folder_item.id
+            print(f'Meeting Docs folder Item Id: {meeting_docs_folder_item_id}')
+            ma_agenda_template_item_id = self._search_item_with_name(drive.id, 'NHTM Online Agenda Template 2023.xlsx')
+            print(f'NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}')
+            self._copy_agenda_to_meeting_folder(graph_client, drive.id, ma_agenda_template_item_id, meeting_docs_folder_item_id)
             for group_id in group_ids:
                 plan = self._get_next_meeting_plan(graph_client, group_id)
                 if plan is None:
@@ -263,5 +341,14 @@ class AgendaCreator:
         """Return the month string for next Tuesday"""
         return self._next_tuesday.strftime('%B')
 
+    @property
+    def _next_tuesday_meeting_docs(self):
+        """Return the meeting docs folder name for next Tuesday"""
+        return self._next_tuesday.strftime('%Y-%m-%d Meeting Docs')
+    
+    @property
+    def _next_tuesday_meeting_agenda_excel(self):
+        """Return the meeting agenda excel file name for next Tuesday"""
+        return self._next_tuesday.strftime('NHTM Online Agenda %m-%d-%Y.xlsx')
 agenda_creator: AgendaCreator = AgendaCreator()
 agenda_creator.create()
