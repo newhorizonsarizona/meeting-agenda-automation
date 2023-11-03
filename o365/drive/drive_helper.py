@@ -118,7 +118,7 @@ class DriveHelper:
                 ),
                 name = dest_item_name,
             )
-            copy_result = await graph_client.drives.by_drive_id(drive_id).items.by_drive_item_id(source_item_id).children.post(request_body)
+            copy_result = await graph_client.drives.by_drive_id(drive_id).items.by_drive_item_id(source_item_id).copy.post(request_body)
             return copy_result
         except APIError as e:
             print(f'Error: {e.error.message}')

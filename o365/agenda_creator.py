@@ -261,10 +261,10 @@ class AgendaCreator:
         """Copy agenda template to the meeting folder"""
         retry_count = 0
         agenda_item = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 print(f'Copying the agenda template {template_item_id} to meeting folder: {meeting_folder_item_id}')
-                agenda_item = asyncio.run(DriveHelper.copy_item(graph_client, drive_id, template_item_id, meeting_folder_item_id, self._next_tuesday_meeting_agenda_excel)) 
+                agenda_item = asyncio.run(DriveHelper.copy_item(graph_client, drive_id, template_item_id, meeting_folder_item_id, self._next_tuesday_meeting_agenda_excel))
                 if agenda_item and agenda_item.value:
                     return agenda_item.value.id
             except RuntimeError as e:
