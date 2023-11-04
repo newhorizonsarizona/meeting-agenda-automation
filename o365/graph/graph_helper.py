@@ -29,6 +29,7 @@ class GraphHelper:
             return graph_response.json()
         else:
             print(f'Error {graph_response.status_code} - {graph_response.text}')
+        return None
 
 
     def post_request(self, path: str, data: str, headers: dict):
@@ -43,3 +44,4 @@ class GraphHelper:
             return graph_response.json()
         else:
             print(f'Error {graph_response.status_code} - {graph_response.text}')
+        return None

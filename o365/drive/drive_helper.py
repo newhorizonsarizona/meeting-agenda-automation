@@ -20,6 +20,7 @@ class DriveHelper:
             return drive
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
     @staticmethod
     # GET /groups/{group-id}/drive/special/{item-id}
@@ -31,6 +32,7 @@ class DriveHelper:
             return special_item
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
     @staticmethod
     # GET /drives/{drive-id}/root:/{path-relative-to-root}:/children
@@ -74,6 +76,7 @@ class DriveHelper:
             return children
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
     @staticmethod
     # GET /drives/{drive-id}/items/{item-id}/children
@@ -85,6 +88,7 @@ class DriveHelper:
             return children
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
     @staticmethod
     # GET /drives/{drive-id}/items/{parent-item-id}/children
@@ -104,6 +108,7 @@ class DriveHelper:
             return folder_result
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
     @staticmethod
     # GET /drives/{drive-id}/items/{parent-item-id}/children
@@ -122,3 +127,4 @@ class DriveHelper:
             return copy_result
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None

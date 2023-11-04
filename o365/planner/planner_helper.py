@@ -14,6 +14,7 @@ class PlannerHelper:
             return plans
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
 
     @staticmethod
@@ -26,6 +27,7 @@ class PlannerHelper:
             return buckets
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
 
     @staticmethod
     # GET planner/buckets/{bucket-id}/tasks
@@ -37,3 +39,4 @@ class PlannerHelper:
             return tasks
         except APIError as e:
             print(f'Error: {e.error.message}')
+        return None
