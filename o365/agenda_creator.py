@@ -1,9 +1,11 @@
 import asyncio
 import datetime
+import json
 from logging import Logger
 import time
 from auth.auth_helper import AuthHelper
 from drive.drive_helper import DriveHelper
+from excel.excel_helper import ExcelHelper
 from user.user_helper import UserHelper
 from planner.planner_helper import PlannerHelper
 from graph.graph_helper import GraphHelper
@@ -272,6 +274,71 @@ class AgendaCreator:
                         raise e  
         return agenda_item
     
+    # GET /drives/{drive-id}/items/{id}/workbook/worksheets/
+    def _get_agenda_worksheet_id(self, graph_client, drive_id, item_id):
+        """Create the Agenda worksheet id"""
+        retry_count = 0
+        excel_worksheet_id = None
+        while retry_count < 3:
+            try:
+                print(f'Getting the agenda worksheet id for drive item: {item_id}')
+                worksheets = asyncio.run(ExcelHelper.get_worksheets(graph_client, drive_id, item_id))
+                if worksheets and worksheets.value:
+                    for worksheet in worksheets.value:
+                        if worksheet.name == 'Agenda':
+                            return worksheet.id
+            except RuntimeError as e:
+                if "Event loop is closed" in str(e):
+                    if retry_count < 5:
+                        retry_count = retry_count + 1
+                        time.sleep(10)
+                    else:
+                        raise e
+        return excel_worksheet_id
+ 
+    # GET /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/cell(row=<row>,column=<column>)
+    def _get_agenda_worksheet_cell(self, drive_id, item_id, worksheet_id, row, column):
+        """Get the worksheet cell"""
+        try:
+            print(f'Getting the worksheet cell for item {item_id} and worksheeet{worksheet_id} in drive {drive_id}')
+            graph_helper: GraphHelper = GraphHelper()
+            cell = graph_helper.get_request(f'/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/cell(row={row},column={column})', {'Content-Type': 'application/json'})
+            if cell:
+                print(f"Found cell {cell}")
+                return cell
+        except Exception as e:
+            print(f'Error: {e}')
+        return None
+ 
+    # GET /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:A2')
+    def _get_agenda_worksheet_range(self, drive_id, item_id, worksheet_id, range_address):
+        """Get the worksheet range"""
+        try:
+            print(f'Getting the worksheet range {range_address} for item {item_id} and worksheeet{worksheet_id} in drive {drive_id}')
+            graph_helper: GraphHelper = GraphHelper()
+            range_values = graph_helper.get_request(f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')", {'Content-Type': 'application/json'})
+            if range_values:
+                print(f"Found range {range_values}")
+                return range_values
+        except Exception as e:
+            print(f'Error: {e}')
+        return None
+     
+    # PATCH /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:A2')
+    def _update_agenda_worksheet_range(self, drive_id, item_id, worksheet_id, range_address, data):
+        """Get the worksheet range"""
+        try:
+            print(f'Updating the worksheet range {range_address} for item {item_id} and worksheeet{worksheet_id} in drive {drive_id}')
+            graph_helper: GraphHelper = GraphHelper()
+            data_json = json.dumps({'values': [data]})
+            range_update_result = graph_helper.patch_request(f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')", data_json, {'Content-Type': 'application/json'})
+            if range_update_result:
+                print(f"Range update result {range_update_result}")
+                return range_update_result
+        except Exception as e:
+            print(f'Error: {e}')
+        return None
+    
     def create(self):
         """Get the planner tasks for next meeting"""
         print('Creating agenda')
@@ -296,6 +363,13 @@ class AgendaCreator:
                 if next_meeting_agenda_excel_item_id is None:
                     next_meeting_agenda_excel_item_id = self._search_item_with_name(drive.id, self._next_tuesday_meeting_agenda_excel)
             print(f'Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}')
+            agenda_worksheet_id = self._get_agenda_worksheet_id(graph_client, drive.id, next_meeting_agenda_excel_item_id)
+            print(f'Updating Agenda worksheet: {agenda_worksheet_id}')
+            range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3')
+            print(range_values)
+            self._update_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3', ['Tuesday', self._next_tuesday_date_us])
+            range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3')
+            print(range_values)
             for group_id in group_ids:
                 plan = self._get_next_meeting_plan(graph_client, group_id)
                 if plan is None:
@@ -331,8 +405,13 @@ class AgendaCreator:
 
     @property
     def _next_tuesday_date(self):
-        """Return the date time string in yyyyMMdd format for next Tuesday"""
+        """Return the date in yyyyMMdd format for next Tuesday"""
         return self._next_tuesday.strftime('%Y%m%d')
+
+    @property
+    def _next_tuesday_date_us(self):
+        """Return the date in MM/dd/yyyy US format for next Tuesday"""
+        return self._next_tuesday.strftime('%m/%d/%Y')
 
     @property
     def _next_tuesday_month(self):

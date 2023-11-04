@@ -10,6 +10,7 @@ openpyxl = "*"
 msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
+json = "*"
 
 [dev-packages]
 requests = "*"
@@ -18,6 +19,7 @@ openpyxl = "*"
 msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
+json = "*"
 
 [requires]
 python_version = "3.11"
