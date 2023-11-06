@@ -6,6 +6,8 @@ import time
 from auth.auth_helper import AuthHelper
 from drive.drive_helper import DriveHelper
 from excel.excel_helper import ExcelHelper
+from excel.range_assignments import RangeAssignments
+from exception.agenda_exception import AgendaException
 from user.user_helper import UserHelper
 from planner.planner_helper import PlannerHelper
 from graph.graph_helper import GraphHelper
@@ -14,8 +16,6 @@ group_ids = ['aa235df6-19fc-4de3-8498-202b5cbe2d15','1ab26305-df89-435b-802d-4f2
 
 class AgendaCreator:
     """This class is used for creating the agenda"""
-
-    weekly_meeting_doc_lib_id :  str = '01FL2JKR56Y2GOVW7725BZO354PWSELRRZ'
 
     def _get_next_meeting_plan(self, graph_client, group_id):
         """Gets plans for the specified group_id"""
@@ -325,20 +325,52 @@ class AgendaCreator:
         return None
      
     # PATCH /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:A2')
-    def _update_agenda_worksheet_range(self, drive_id, item_id, worksheet_id, range_address, data):
+    # {
+    #    "values" : [["Hello", "100"],["1/1/2016", null]],
+    #    "formulas" : [[null, null], [null, "=B1*2"]],
+    #    "numberFormat" : [[null,null], ["m-ddd", null]]
+    #}
+    def _update_agenda_worksheet_range(self, drive_id, item_id, worksheet_id, range_address, range_data: dict):
         """Get the worksheet range"""
         try:
             print(f'Updating the worksheet range {range_address} for item {item_id} and worksheeet{worksheet_id} in drive {drive_id}')
             graph_helper: GraphHelper = GraphHelper()
-            data_json = json.dumps({'values': [data]})
+            request_data: dict = {"values": [], "formulas": [], "numberFormat" : []}
+            if range_data['values'] and len(range_data['values']) > 0:
+                request_data['values'].append(range_data['values'])
+            if range_data['formulas'] and len(range_data['formulas']) > 0:
+                request_data['formulas'].append(range_data['formulas'])
+            else:
+                del request_data['formulas']
+            if range_data['numberFormat'] and len(range_data['numberFormat']) > 0:
+                request_data['numberFormat'].append(range_data['numberFormat'])
+            else:
+                del request_data['numberFormat']
+            data_json = json.dumps(request_data)
             range_update_result = graph_helper.patch_request(f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')", data_json, {'Content-Type': 'application/json'})
             if range_update_result:
                 print(f"Range update result {range_update_result}")
                 return range_update_result
-        except Exception as e:
+        except AgendaException as e:
             print(f'Error: {e}')
         return None
-    
+
+    def _populate_agenda_worksheet(self, drive_id, item_id, worksheet_id, range_assignments_map: dict):
+        """Populating the agenda worksheet based on specified range asssignments"""
+        for range_key, range_value in range_assignments_map.items():
+            values = []
+            formats = []
+            formulae = []
+            if range_value["value"] and range_value["value"] != "":
+                values.append(range_value["value"])
+            if range_value["format"] and range_value["format"] != "":
+                formats.append(range_value["format"])
+            if range_value["formula"] and range_value["formula"] != "":
+                formulae.append(range_value["formula"])
+            range_data: dict = {"name": range_value["name"], "values": values, "formulas": formulae, "numberFormat": formats}
+            self._update_agenda_worksheet_range(drive_id, item_id, worksheet_id, range_key, range_data)
+            time.sleep(2)
+
     def create(self):
         """Get the planner tasks for next meeting"""
         print('Creating agenda')
@@ -365,11 +397,11 @@ class AgendaCreator:
             print(f'Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}')
             agenda_worksheet_id = self._get_agenda_worksheet_id(graph_client, drive.id, next_meeting_agenda_excel_item_id)
             print(f'Updating Agenda worksheet: {agenda_worksheet_id}')
-            range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3')
-            print(range_values)
-            self._update_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3', ['Tuesday', self._next_tuesday_date_us])
-            range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3')
-            print(range_values)
+            range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'D3')
+            print(range_values["text"])
+            #self._update_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3', {"values": ['Tuesday', self._next_tuesday_date_us]})
+            #range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3')
+            #print(range_values)
             for group_id in group_ids:
                 plan = self._get_next_meeting_plan(graph_client, group_id)
                 if plan is None:
@@ -383,10 +415,16 @@ class AgendaCreator:
                 if tasks is None:
                     print('No matching tasks found for next the meeting next week')
                     exit(1)
+                meeting_assignments: dict = {}
                 for task in tasks.value:
                     assigned_to_user = self._get_assigned_to_user(graph_client, task)
                     if assigned_to_user is not None:
                         print(f'{task.title}, due {task.due_date_time} is assigned to {assigned_to_user.display_name}')
+                        meeting_assignments[task.title] = assigned_to_user.display_name.split(' ')[0]
+                range_assignments: RangeAssignments = RangeAssignments(self._next_tuesday_date_us)
+                range_assignments_map: dict = range_assignments.populate_values(meeting_assignments)
+                print(range_assignments_map)
+                self._populate_agenda_worksheet(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, range_assignments_map)
                 print(f'Successfully created the agenda for the next meeting on {self._next_tuesday_date}')
                 return
         except RuntimeError as e:
@@ -427,5 +465,6 @@ class AgendaCreator:
     def _next_tuesday_meeting_agenda_excel(self):
         """Return the meeting agenda excel file name for next Tuesday"""
         return self._next_tuesday.strftime('NHTM Online Agenda %m-%d-%Y.xlsx')
+
 agenda_creator: AgendaCreator = AgendaCreator()
 agenda_creator.create()

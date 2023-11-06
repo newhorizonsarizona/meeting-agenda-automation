@@ -2,6 +2,7 @@ import httpx
 import requests
 
 from auth.auth_helper import AuthHelper
+from exception.agenda_exception import AgendaException
 
 class GraphHelper:
     """This class is a helper for making GraphQL API calls via http"""
@@ -29,7 +30,7 @@ class GraphHelper:
             #print(graph_response.json())
             return graph_response.json()
         else:
-            print(f'Error {graph_response.status_code} - {graph_response.text}')
+            raise AgendaException(f'Error {graph_response.status_code} - {graph_response.text}')
         return None
 
     def post_request(self, path: str, data: str, headers: dict):
@@ -43,7 +44,7 @@ class GraphHelper:
             #print(graph_response.json())
             return graph_response.json()
         else:
-            print(f'Error {graph_response.status_code} - {graph_response.text}')
+            raise AgendaException(f'Error {graph_response.status_code} - {graph_response.text}')
         return None
 
     def patch_request(self, path: str, data: str, headers: dict):
@@ -57,5 +58,5 @@ class GraphHelper:
             #print(graph_response.json())
             return graph_response.json()
         else:
-            print(f'Error {graph_response.status_code} - {graph_response.text}')
+            raise AgendaException(f'Error {graph_response.status_code} - {graph_response.text}')
         return None
