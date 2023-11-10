@@ -269,6 +269,9 @@ class AgendaCreator:
                     if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
+            except Exception as ex:
+                if "DeserializationError" in str(ex):
+                    time.sleep(30)
                     
         return agenda_item
     
