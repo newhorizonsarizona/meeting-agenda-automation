@@ -101,7 +101,7 @@ class DriveHelper:
                 folder = Folder(
                 ),
                 additional_data = {
-                    "@microsoft_graph_conflict_behavior" : "replace",
+                    "@microsoft_graph_conflict_behavior" : "fail",
                 }
             )
             folder_result = await graph_client.drives.by_drive_id(drive_id).items.by_drive_item_id(parent_item_id).children.post(request_body)

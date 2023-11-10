@@ -223,7 +223,7 @@ class AgendaCreator:
         """Create the weekly meeting docs folder"""
         retry_count = 0
         folder_item_id = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 print(f'Creating the folder {meeting_docs_folder} for drive item: {item_id}')
                 folder_item = asyncio.run(DriveHelper.create_folder(graph_client, drive_id, item_id, meeting_docs_folder)) 
@@ -234,21 +234,20 @@ class AgendaCreator:
                     if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
-                    else:
-                        raise e
+                        
         return folder_item_id
     
     # GET /drives/{drive-id}/root/search(q=\'FolderName\')?$filter=folder ne null&$select=name,id'
     def _search_item_with_name(self, drive_id: str, folder_name: str):
         """Search the the drive id for matching folder"""
         try:
-            print(f'Searching the folder matching {folder_name} in drive {drive_id}')
+            print(f'Searching the item matching {folder_name} in drive {drive_id}')
             graph_helper: GraphHelper = GraphHelper()
             item = graph_helper.get_request(f'/drives/{drive_id}/root/search(q=\'{folder_name}\')?$select=name,id', {'Content-Type': 'application/json'})
             if item and item['value'] is not None:
                 for value in item['value']:
                     if value['name'] == folder_name:
-                        print(f"Found folder {value['name']}")
+                        print(f"Found item {value['name']}")
                         return value['id']
         except Exception as e:
             print(f'Error: {e}')
@@ -270,8 +269,7 @@ class AgendaCreator:
                     if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
-                    else:
-                        raise e  
+                    
         return agenda_item
     
     # GET /drives/{drive-id}/items/{id}/workbook/worksheets/
@@ -368,7 +366,8 @@ class AgendaCreator:
             if range_value["formula"] and range_value["formula"] != "":
                 formulae.append(range_value["formula"])
             range_data: dict = {"name": range_value["name"], "values": values, "formulas": formulae, "numberFormat": formats}
-            self._update_agenda_worksheet_range(drive_id, item_id, worksheet_id, range_key, range_data)
+            range_address = f"{range_key}:{range_key}"
+            self._update_agenda_worksheet_range(drive_id, item_id, worksheet_id, range_address, range_data)
             time.sleep(2)
 
     def create(self):
@@ -381,27 +380,40 @@ class AgendaCreator:
             meeting_docs_folder = self._next_tuesday_meeting_docs
             wmc_drive_item_id = self._search_item_with_name(drive.id, 'Weekly Meeting Channel')
             print(f'Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}')
-            meeting_docs_folder_item_id = self._search_item_with_name(drive.id, meeting_docs_folder)
-            if meeting_docs_folder_item_id is None:
-                meeting_docs_folder_item_id = self._create_weekly_meeting_docs(graph_client, drive.id, wmc_drive_item_id, meeting_docs_folder)
-                if meeting_docs_folder_item_id is None:
-                    meeting_docs_folder_item_id = self._search_item_with_name(drive.id, meeting_docs_folder)
+            retry = 0
+            while True:
+                meeting_docs_folder_item_id = self._search_item_with_name(drive.id, meeting_docs_folder)
+                if meeting_docs_folder_item_id is not None:
+                    break
+                if retry == 0:
+                    meeting_docs_folder_item_id = self._create_weekly_meeting_docs(graph_client, drive.id, wmc_drive_item_id, meeting_docs_folder)
+                retry = retry + 1
+                if retry < 30:
+                    time.sleep(30)
+                else:
+                    raise AgendaException(f'Could not find the id for the meeting docs folder {meeting_docs_folder}')
+     
             print(f'Meeting Docs folder Item Id: {meeting_docs_folder_item_id}')
+
             ma_agenda_template_item_id = self._search_item_with_name(drive.id, 'NHTM Online Agenda Template 2023.xlsx')
             print(f'NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}')
-            next_meeting_agenda_excel_item_id = self._search_item_with_name(drive.id, self._next_tuesday_meeting_agenda_excel)
-            if next_meeting_agenda_excel_item_id is None:
-                next_meeting_agenda_excel_item_id = self._copy_agenda_to_meeting_folder(graph_client, drive.id, ma_agenda_template_item_id, meeting_docs_folder_item_id, self._next_tuesday_meeting_agenda_excel)
-                if next_meeting_agenda_excel_item_id is None:
-                    next_meeting_agenda_excel_item_id = self._search_item_with_name(drive.id, self._next_tuesday_meeting_agenda_excel)
+            retry = 0
+            while True:
+                next_meeting_agenda_excel_item_id = self._search_item_with_name(drive.id, self._next_tuesday_meeting_agenda_excel)
+                if next_meeting_agenda_excel_item_id is not None:
+                    break
+                if retry == 0:
+                    next_meeting_agenda_excel_item_id = self._copy_agenda_to_meeting_folder(graph_client, drive.id, ma_agenda_template_item_id, meeting_docs_folder_item_id, self._next_tuesday_meeting_agenda_excel)
+                retry = retry + 1
+                if retry < 30:
+                    time.sleep(30)
+                else:
+                    raise AgendaException(f'Could not find the id for the next meeting agenda excel {self._next_tuesday_meeting_agenda_excel}')
+
             print(f'Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}')
+
             agenda_worksheet_id = self._get_agenda_worksheet_id(graph_client, drive.id, next_meeting_agenda_excel_item_id)
             print(f'Updating Agenda worksheet: {agenda_worksheet_id}')
-            range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'D3')
-            print(range_values["text"])
-            #self._update_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3', {"values": ['Tuesday', self._next_tuesday_date_us]})
-            #range_values = self._get_agenda_worksheet_range(drive.id, next_meeting_agenda_excel_item_id, agenda_worksheet_id, 'C3:D3')
-            #print(range_values)
             for group_id in group_ids:
                 plan = self._get_next_meeting_plan(graph_client, group_id)
                 if plan is None:
