@@ -5,21 +5,17 @@ name = "pypi"
 
 [packages]
 requests = "*"
-requests-oauthlib = "*"
-openpyxl = "*"
 msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
-json = "*"
+azure-functions = "*"
 
 [dev-packages]
 requests = "*"
-requests-oauthlib = "*"
-openpyxl = "*"
 msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
-json = "*"
+azure-functions = "*"
 
 [requires]
 python_version = "3.11"
