@@ -4,9 +4,9 @@ import logging
 
 import azure.functions as func
 
-sys.path.append('../../o365/')
+sys.path.append('../')
 
-from o365.agenda_creator import AgendaCreator
+from agenda_creator import AgendaCreator
 
 def main(mytimer: func.TimerRequest) -> None:
     """Timer trigger for the weekly meeting agenda"""
