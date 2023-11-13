@@ -1,0 +1,5 @@
+cred.sh
+.swp
+*__pycache__*
+*.venv
+*/local.settings.json

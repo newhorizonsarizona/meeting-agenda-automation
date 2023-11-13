@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+msal = "*"
+httpx = "*"
+msgraph-sdk = "*"
+azure-functions = "*"
+
+[dev-packages]
+requests = "*"
+msal = "*"
+httpx = "*"
+msgraph-sdk = "*"
+azure-functions = "*"
+
+[requires]
+python_version = "3.11"
