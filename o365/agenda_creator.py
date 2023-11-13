@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import json
-from logging import Logger
 import time
 from auth.auth_helper import AuthHelper
 from drive.drive_helper import DriveHelper

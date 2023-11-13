@@ -9,7 +9,7 @@
       "isBackground": true,
       "dependsOn": "pip install (functions)",
       "options": {
-        "cwd": "${workspaceFolder}/o365"
+        "cwd": "${workspaceFolder}/"
       }
     },
     {
@@ -22,11 +22,11 @@
         "command": "${config:azureFunctions.pythonVenv}/Scripts/python -m pip install -r requirements.txt"
       },
       "linux": {
-        "command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
+        "command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install pipenv && pipenv install --dev"
       },
       "problemMatcher": [],
       "options": {
-        "cwd": "${workspaceFolder}/o365"
+        "cwd": "${workspaceFolder}/"
       }
     }
   ]
