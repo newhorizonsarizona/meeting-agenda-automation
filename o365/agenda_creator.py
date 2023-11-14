@@ -361,6 +361,7 @@ class AgendaCreator:
             values = []
             formats = []
             formulae = []
+            range_address = f"{range_key}"
             if range_value["value"] and range_value["value"] != "":
                 values.append(range_value["value"])
             if range_value["format"] and range_value["format"] != "":
@@ -368,7 +369,6 @@ class AgendaCreator:
             if range_value["formula"] and range_value["formula"] != "":
                 formulae.append(range_value["formula"])
             range_data: dict = {"name": range_value["name"], "values": values, "formulas": formulae, "numberFormat": formats}
-            range_address = f"{range_key}:{range_key}"
             self._update_agenda_worksheet_range(drive_id, item_id, worksheet_id, range_address, range_data)
             time.sleep(2)
 
