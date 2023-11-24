@@ -2,193 +2,208 @@ class RangeAssignments:
     """This class is used for storing the meeting range assignments"""
 
     _range_assignments_map: dict = {
-                                "C3": {
-                                        "name": "Meeting Day",
-                                        "value": "Tuesday",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "D3": {
-                                        "name": "Meeting Date",
-                                        "value": "",
-                                        "format": "d-mmm-yy",
-                                        "formula": "",
-                                    },
-                                "G5": {
-                                        "name": "Presiding Officer",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=LEFT(A5, SEARCH(' ',A5,1)-1)",
-                                    },
-                                "G7": {
-                                        "name": "Joke Master",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G8": {
-                                        "name": "Toastmaster",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G9": {
-                                        "name": "General Evaluator",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G11": {
-                                        "name": "Grammarian",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G12": {
-                                        "name": "Manual Evaluator 1",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G13": {
-                                        "name": "Manual Evaluator 2",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G14": {
-                                        "name": "Manual Evaluator 3",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G15": {
-                                        "name": "Ah Counter",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G16": {
-                                        "name": "Timer",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G17": {
-                                        "name": "Speaker 1",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G19": {
-                                        "name": "Speaker 2",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G21": {
-                                        "name": "Speaker 3",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G22": {
-                                        "name": "Topics Master",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G25": {
-                                        "name": "General Evaluator",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G9",
-                                    },
-                                "G27": {
-                                        "name": "Manual Evaluator 1",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G12",
-                                    },
-                                "G28": {
-                                        "name": "Manual Evaluator 2",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G13",
-                                    },
-                                "G29": {
-                                        "name": "Manual Evaluator 3",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G14",
-                                    },
-                                "G30": {
-                                        "name": "Ballot Counter",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G31": {
-                                        "name": "Timer",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G16",
-                                    },
-                                "G32": {
-                                        "name": "Ah Counter",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G15",
-                                    },
-                                "G33": {
-                                        "name": "Grammarian",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G11",
-                                    },
-                                "G34": {
-                                        "name": "General Evaluator",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G9",
-                                    },
-                                "G35": {
-                                        "name": "Toastmaster",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G8",
-                                    },
-                                "G37": {
-                                        "name": "GEM",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G38": {
-                                        "name": "WOW",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "",
-                                    },
-                                "G41": {
-                                        "name": "Presiding Officer",
-                                        "value": "",
-                                        "format": "",
-                                        "formula": "=G5",
-                                    }
-                                }
-    
-    def __init__(self, meeting_date) -> None:
+        "C3:D3": {
+            "names": [["Meeting Day", "Meeting Date"]],  # C3,D3
+            "values": [[None, None]],  # C3,D3
+            "formats": [[None, "d-mmm-yy"]],  # C3,D3
+            "formulas": [[None, None]],  # C3,D3
+        },
+        "G5:G41": {
+            "names": [
+                ["Presiding Officer"],  # G5
+                [None],  # G6
+                ["Joke Master"],  # G7
+                ["Toastmaster"],  # G8
+                ["General Evaluator"],  # G9
+                [None],  # G10
+                ["Grammarian"],  # G11
+                ["Manual Evaluator 1"],  # G12
+                ["Manual Evaluator 2"],  # G13
+                ["Manual Evaluator 3"],  # G14
+                ["Ah Counter"],  # G15
+                ["Timer"],  # G16
+                ["Speaker 1"],  # G17
+                [None],  # G18
+                ["Speaker 2"],  # G19
+                [None],  # G20
+                ["Speaker 3"],  # G21
+                ["Topics Master"],  # G22
+                [None],  # G23
+                [None],  # G24
+                ["General Evaluator"],  # G25
+                [None],  # G26
+                ["Manual Evaluator 1"],  # G27
+                ["Manual Evaluator 2"],  # G28
+                ["Manual Evaluator 3"],  # G29
+                ["Ballot Counter"],  # G30
+                ["Timer"],  # G31
+                ["Ah Counter"],  # G32
+                ["Grammarian"],  # G33
+                ["General Evaluator"],  # G34
+                ["Toastmaster"],  # G35
+                [None],  # G36
+                ["GEM"],  # G37
+                ["WOW"],  # G38
+                [None],  # G39
+                [None],  # G40
+                ["Presiding Officer"],  # G41
+            ],
+            "values": [
+                [None],  # G5
+                [None],  # G6
+                [None],  # G7
+                [None],  # G8
+                [None],  # G9
+                [None],  # G10
+                [None],  # G11
+                [None],  # G12
+                [None],  # G13
+                [None],  # G14
+                [None],  # G15
+                [None],  # G16
+                [None],  # G17
+                [None],  # G18
+                [None],  # G19
+                [None],  # G20
+                [None],  # G21
+                [None],  # G22
+                [None],  # G23
+                [None],  # G24
+                [None],  # G25
+                [None],  # G26
+                [None],  # G27
+                [None],  # G28
+                [None],  # G29
+                [None],  # G30
+                [None],  # G31
+                [None],  # G32
+                [None],  # G33
+                [None],  # G34
+                [None],  # G35
+                [None],  # G36
+                [None],  # G37
+                [None],  # G38
+                [None],  # G39
+                [None],  # G40
+                [None],  # G41
+            ],
+            "formats": [
+                [None],  # G5
+                [None],  # G6
+                [None],  # G7
+                [None],  # G8
+                [None],  # G9
+                [None],  # G10
+                [None],  # G11
+                [None],  # G12
+                [None],  # G13
+                [None],  # G14
+                [None],  # G15
+                [None],  # G16
+                [None],  # G17
+                [None],  # G18
+                [None],  # G19
+                [None],  # G20
+                [None],  # G21
+                [None],  # G22
+                [None],  # G23
+                [None],  # G24
+                [None],  # G25
+                [None],  # G26
+                [None],  # G27
+                [None],  # G28
+                [None],  # G29
+                [None],  # G30
+                [None],  # G31
+                [None],  # G32
+                [None],  # G33
+                [None],  # G34
+                [None],  # G35
+                [None],  # G36
+                [None],  # G37
+                [None],  # G38
+                [None],  # G39
+                [None],  # G40
+                [None],  # G41
+            ],
+            "formulas": [
+                ["=A5"],  # G5
+                [None],  # G6
+                [None],  # G7
+                [None],  # G8
+                [None],  # G9
+                [None],  # G10
+                [None],  # G11
+                [None],  # G12
+                [None],  # G13
+                [None],  # G14
+                [None],  # G15
+                [None],  # G16
+                [None],  # G17
+                [None],  # G18
+                [None],  # G19
+                [None],  # G20
+                [None],  # G21
+                [None],  # G22
+                [None],  # G23
+                [None],  # G24
+                ["=G9"],  # G25
+                [None],  # G26
+                ["=G12"],  # G27
+                ["=G13"],  # G28
+                ["=G14"],  # G29
+                [None],  # G30
+                ["=G16"],  # G31
+                ["=G15"],  # G32
+                ["=G11"],  # G33
+                ["=G9"],  # G34
+                ["=G8"],  # G35
+                [None],  # G36
+                [None],  # G37
+                [None],  # G38
+                [None],  # G39
+                [None],  # G40
+                ["=G5"],  # G41
+            ],
+        },
+    }
+
+    def __init__(self) -> None:
         """initialize the range assignments"""
-        self._range_assignments_map['D3']['value'] = meeting_date
 
     def populate_values(self, meeting_assignments: dict) -> None:
         """populate the meeting assignments"""
-        for meeting_assignment_key, meeting_assignment_value in meeting_assignments.items():
-            for range_assignment_value in self._range_assignments_map.values():
-                if range_assignment_value['name'] in meeting_assignment_key:
-                    range_assignment_value['value'] = meeting_assignment_value
+        for (
+            meeting_assignment_key,
+            meeting_assignment_value,
+        ) in meeting_assignments.items():
+            value_populated: bool = False
+            for range_assignment_value_map in self._range_assignments_map.values():
+                value_row_idx: int = 0
+                for range_assignment_value_row_values in range_assignment_value_map[
+                    "names"
+                ]:
+                    value_column_idx: int = 0
+                    for (
+                        range_assignment_value_col_value
+                    ) in range_assignment_value_row_values:
+                        if (
+                            range_assignment_value_map["formulas"][value_row_idx][
+                                value_column_idx
+                            ]
+                            == None
+                            and meeting_assignment_key
+                            == range_assignment_value_col_value
+                        ):
+                            range_assignment_value_map["values"][value_row_idx][
+                                value_column_idx
+                            ] = meeting_assignment_value
+                            value_populated = True
+                        value_column_idx += 1
+                    if value_populated:
+                        break
+                    value_row_idx += 1
+                if value_populated:
                     break
-                
+
         return self._range_assignments_map
-    

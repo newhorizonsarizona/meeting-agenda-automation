@@ -7,5 +7,9 @@
     "debug.internalConsoleOptions": "neverOpen",
     "python.analysis.extraPaths": [
         "./meeting_timer_trigger/"
-    ]
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }
