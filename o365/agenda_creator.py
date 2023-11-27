@@ -285,14 +285,14 @@ class AgendaCreator:
             print(f"Searching the item matching {folder_name} in drive {drive_id}")
             graph_helper: GraphHelper = GraphHelper()
             item = graph_helper.get_request(
-                f"/drives/{drive_id}/root/search(q='{folder_name}')?$select=name,id",
+                f"/drives/{drive_id}/root/search(q='{folder_name}')?$select=name,id,web_url",
                 {"Content-Type": "application/json"},
             )
             if item and item["value"] is not None:
                 for value in item["value"]:
                     if value["name"] == folder_name:
                         print(f"Found item {value['name']}")
-                        return value["id"]
+                        return value
         except Exception as e:
             print(f"Error: {e}")
         return None
@@ -454,15 +454,18 @@ class AgendaCreator:
             )
             print(f"Drive id: {drive.id}")
             meeting_docs_folder = self._next_tuesday_meeting_docs
-            wmc_drive_item_id = self._search_item_with_name(
+            wmc_drive_item = self._search_item_with_name(
                 drive.id, "Weekly Meeting Channel"
             )
+            wmc_drive_item_id = wmc_drive_item["id"]
             print(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
             retry = 0
             while True:
-                meeting_docs_folder_item_id = self._search_item_with_name(
+                meeting_docs_folder_item = self._search_item_with_name(
                     drive.id, meeting_docs_folder
                 )
+                meeting_docs_folder_item_id = meeting_docs_folder_item["id"]
+                meeting_docs_folder_item_url = meeting_docs_folder_item["web_url"]
                 if meeting_docs_folder_item_id is not None:
                     break
                 if retry == 0:
@@ -485,9 +488,11 @@ class AgendaCreator:
             print(f"NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}")
             retry = 0
             while True:
-                next_meeting_agenda_excel_item_id = self._search_item_with_name(
+                next_meeting_agenda_excel_item = self._search_item_with_name(
                     drive.id, self._next_tuesday_meeting_agenda_excel
                 )
+                next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
+                next_meeting_agenda_excel_item_url = next_meeting_agenda_excel_item["web_url"]
                 if next_meeting_agenda_excel_item_id is not None:
                     break
                 if retry == 0:
@@ -532,13 +537,21 @@ class AgendaCreator:
                     print("No matching tasks found for next the meeting next week")
                     exit(1)
                 meeting_assignments: dict = {}
+                speakers_upn: list = []
+                topics_master_upn: str = None
                 for task in tasks.value:
                     assigned_to_user = self._get_assigned_to_user(graph_client, task)
                     if assigned_to_user is not None:
                         print(
                             f"{task.title}, due {task.due_date_time} is assigned to {assigned_to_user.display_name}"
                         )
-                        meeting_assignments[task.title.strip()] = assigned_to_user.display_name
+                        meeting_assignments[
+                            task.title.strip()
+                        ] = assigned_to_user.display_name
+                        if "Speaker" in task.title:
+                            speakers_upn.append(assigned_to_user.user_principal_name)
+                        if "Topics Master" in task.title:
+                            topics_master_upn = assigned_to_user.user_principal_name
                 meeting_assignments["Meeting Day"] = "Tuesday"
                 meeting_assignments["Meeting Date"] = self._next_tuesday_date_us
                 range_assignments: RangeAssignments = RangeAssignments()
