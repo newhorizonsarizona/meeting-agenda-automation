@@ -1,3 +1,4 @@
+import os
 import asyncio
 import datetime
 import json
@@ -6,6 +7,7 @@ from auth.auth_helper import AuthHelper
 from drive.drive_helper import DriveHelper
 from excel.excel_helper import ExcelHelper
 from excel.range_assignments import RangeAssignments
+from excel.range_assignments_reverse import RangeAssignmentsReverse
 from exception.agenda_exception import AgendaException
 from user.user_helper import UserHelper
 from planner.planner_helper import PlannerHelper
@@ -464,10 +466,11 @@ class AgendaCreator:
                 meeting_docs_folder_item = self._search_item_with_name(
                     drive.id, meeting_docs_folder
                 )
-                meeting_docs_folder_item_id = meeting_docs_folder_item["id"]
-                meeting_docs_folder_item_url = meeting_docs_folder_item["web_url"]
-                if meeting_docs_folder_item_id is not None:
-                    break
+                if meeting_docs_folder_item is not None:
+                    meeting_docs_folder_item_id = meeting_docs_folder_item["id"]
+                    #meeting_docs_folder_item_url = meeting_docs_folder_item["web_url"]
+                    if meeting_docs_folder_item_id is not None:
+                        break
                 if retry == 0:
                     meeting_docs_folder_item_id = self._create_weekly_meeting_docs(
                         graph_client, drive.id, wmc_drive_item_id, meeting_docs_folder
@@ -482,19 +485,24 @@ class AgendaCreator:
 
             print(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
 
-            ma_agenda_template_item_id = self._search_item_with_name(
-                drive.id, "NHTM Online Agenda Template 2023.xlsx"
+            ma_agenda_template_item = self._search_item_with_name(
+                drive.id, self._agenda_template_excel
             )
+            if ma_agenda_template_item is not None:
+                ma_agenda_template_item_id = ma_agenda_template_item['id']
             print(f"NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}")
             retry = 0
             while True:
                 next_meeting_agenda_excel_item = self._search_item_with_name(
                     drive.id, self._next_tuesday_meeting_agenda_excel
                 )
-                next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
-                next_meeting_agenda_excel_item_url = next_meeting_agenda_excel_item["web_url"]
-                if next_meeting_agenda_excel_item_id is not None:
-                    break
+                if next_meeting_agenda_excel_item is not None:
+                    next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
+                    #next_meeting_agenda_excel_item_url = next_meeting_agenda_excel_item[
+                    #    "web_url"
+                    #]
+                    if next_meeting_agenda_excel_item_id is not None:
+                        break
                 if retry == 0:
                     next_meeting_agenda_excel_item_id = (
                         self._copy_agenda_to_meeting_folder(
@@ -555,6 +563,8 @@ class AgendaCreator:
                 meeting_assignments["Meeting Day"] = "Tuesday"
                 meeting_assignments["Meeting Date"] = self._next_tuesday_date_us
                 range_assignments: RangeAssignments = RangeAssignments()
+                if self._is_next_meeting_reverse:
+                    range_assignments = RangeAssignmentsReverse()
                 range_assignments_map: dict = range_assignments.populate_values(
                     meeting_assignments
                 )
@@ -607,6 +617,24 @@ class AgendaCreator:
         """Return the meeting agenda excel file name for next Tuesday"""
         return self._next_tuesday.strftime("NHTM Online Agenda %m-%d-%Y.xlsx")
 
+    @property
+    def _agenda_template_excel(self):
+        """Return the name of the meeting agenda template excel file name"""
+        agenda_template_file_name: str = self._next_tuesday.strftime(
+            "NHTM Online Agenda Template %Y.xlsx"
+        )
+        if self._is_next_meeting_reverse:
+            agenda_template_file_name = self._next_tuesday.strftime(
+                "NHTM Online Agenda Reverse Template %Y.xlsx"
+            )
+        return agenda_template_file_name
+
+    @property
+    def _is_next_meeting_reverse(self):
+        """Return if the next meeting is a reverse meeting"""
+        if os.environ["REVERSE_MEETING"] is not None:
+            return True
+        return False
 
 agenda_creator: AgendaCreator = AgendaCreator()
 agenda_creator.create()

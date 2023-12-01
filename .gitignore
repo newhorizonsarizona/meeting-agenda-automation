@@ -3,3 +3,4 @@ cred.sh
 *__pycache__*
 *.venv
 *local.settings.json
+o365/auth/__pycache__/auth_helper.cpython-311.pyc
