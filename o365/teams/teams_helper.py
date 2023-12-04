@@ -36,6 +36,7 @@ class TeamsHelper:
         try:
             chat_message = ChatMessage(
                 body=ItemBody(
+                    contentType="html",
                     content=message,
                 )
             )

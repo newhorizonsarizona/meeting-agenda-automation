@@ -9,9 +9,12 @@ from excel.excel_helper import ExcelHelper
 from excel.range_assignments import RangeAssignments
 from excel.range_assignments_reverse import RangeAssignmentsReverse
 from exception.agenda_exception import AgendaException
+from teams.weekly_meeting_message import WeeklyMeetingMessage
+from teams.teams_helper import TeamsHelper
 from user.user_helper import UserHelper
 from planner.planner_helper import PlannerHelper
 from graph.graph_helper import GraphHelper
+from teams.teams_helper import TeamsHelper
 
 group_ids = [
     "aa235df6-19fc-4de3-8498-202b5cbe2d15",
@@ -280,19 +283,19 @@ class AgendaCreator:
 
         return folder_item_id
 
-    # GET /drives/{drive-id}/root/search(q=\'FolderName\')?$filter=folder ne null&$select=name,id'
-    def _search_item_with_name(self, drive_id: str, folder_name: str):
-        """Search the the drive id for matching folder"""
+    # GET /drives/{drive-id}/root/search(q=\'FolderName\')?$filter=item ne null&$select=name,id,webUrl'
+    def _search_item_with_name(self, drive_id: str, item_name: str):
+        """Search the the drive id for matching item"""
         try:
-            print(f"Searching the item matching {folder_name} in drive {drive_id}")
+            print(f"Searching the item matching {item_name} in drive {drive_id}")
             graph_helper: GraphHelper = GraphHelper()
             item = graph_helper.get_request(
-                f"/drives/{drive_id}/root/search(q='{folder_name}')?$select=name,id,web_url",
+                f"/drives/{drive_id}/root/search(q='{item_name}')?$select=name,id,webUrl",
                 {"Content-Type": "application/json"},
             )
             if item and item["value"] is not None:
                 for value in item["value"]:
-                    if value["name"] == folder_name:
+                    if value["name"] == item_name:
                         print(f"Found item {value['name']}")
                         return value
         except Exception as e:
@@ -446,6 +449,62 @@ class AgendaCreator:
             )
             time.sleep(2)
 
+    # GET /teams/{team-id}/channels
+    def _get_teams_channel(
+        self, graph_client, team_id, channel_name
+    ):
+        """Get the teams channel"""
+        retry_count = 0
+        channel_item = None
+        while retry_count < 5:
+            try:
+                print(
+                    f"Getting the channel {channel_name} for team: {team_id}"
+                )
+                channels = asyncio.run(
+                    TeamsHelper.get_channels(
+                        graph_client, team_id
+                    )
+                )
+                if channels and channels.value:
+                    for channel in channels.value:
+                        if channel.displayName == channel_name:
+                            return channel
+            except RuntimeError as e:
+                if "Event loop is closed" in str(e):
+                    if retry_count < 5:
+                        retry_count = retry_count + 1
+                        time.sleep(10)
+
+        return channel_item
+
+    # GET /teams/{team-id}/channels/{channel-id}/messages
+    def _post_message_to_channel(
+        self, graph_client, team_id, channel_id, message, subject, attachment_url
+    ):
+        """Post the message to a teams channel"""
+        retry_count = 0
+        message_item = None
+        while retry_count < 5:
+            try:
+                print(
+                    f"Posting message to channel {channel_id} for team: {team_id}"
+                )
+                message = asyncio.run(
+                    TeamsHelper.post_message(
+                        graph_client, team_id, channel_id, message, subject, attachment_url
+                    )
+                )
+                if message:
+                    return message
+            except RuntimeError as e:
+                if "Event loop is closed" in str(e):
+                    if retry_count < 5:
+                        retry_count = retry_count + 1
+                        time.sleep(10)
+
+        return message_item
+
     def create(self):
         """Get the planner tasks for next meeting"""
         print("Creating agenda")
@@ -468,7 +527,7 @@ class AgendaCreator:
                 )
                 if meeting_docs_folder_item is not None:
                     meeting_docs_folder_item_id = meeting_docs_folder_item["id"]
-                    #meeting_docs_folder_item_url = meeting_docs_folder_item["web_url"]
+                    meeting_docs_folder_item_url = meeting_docs_folder_item["webUrl"]
                     if meeting_docs_folder_item_id is not None:
                         break
                 if retry == 0:
@@ -498,9 +557,9 @@ class AgendaCreator:
                 )
                 if next_meeting_agenda_excel_item is not None:
                     next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
-                    #next_meeting_agenda_excel_item_url = next_meeting_agenda_excel_item[
-                    #    "web_url"
-                    #]
+                    next_meeting_agenda_excel_item_url = next_meeting_agenda_excel_item[
+                        "webUrl"
+                    ]
                     if next_meeting_agenda_excel_item_id is not None:
                         break
                 if retry == 0:
@@ -578,6 +637,19 @@ class AgendaCreator:
                 print(
                     f"Successfully created the agenda for the next meeting on {self._next_tuesday_date}"
                 )
+                # meeting_message: WeeklyMeetingMessage = WeeklyMeetingMessage(self._next_tuesday_date,
+                #                                                              'Tuesday',
+                #                                                              speakers_upn,
+                #                                                              topics_master_upn,
+                #                                                              meeting_docs_folder_item_url,
+                #                                                              next_meeting_agenda_excel_item_url)
+                # channel = self._get_teams_channel(graph_client, group_id, 'Weekly Meeting Channel')
+                # if channel is not None:
+                #     message = self._post_message_to_channel(graph_client, group_id, channel.id, meeting_message.message, meeting_message.subject, next_meeting_agenda_excel_item_url)
+                #     if message is not None:
+                #         print(
+                #             f"Successfully posted message to the teams, 'Weekly Meeting Channel' channel."
+                #         )
                 return
         except RuntimeError as e:
             print(f"Error creating agenda. {e}")
