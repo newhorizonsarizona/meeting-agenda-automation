@@ -1,9 +1,9 @@
-from excel.range_assignments import RangeAssignments
+from o365.excel.range_assignments import RangeAssignments
 
 class RangeAssignmentsReverse(RangeAssignments):
     """This class is used for storing the reverse meeting range assignments"""
 
-    _range_assignments_map: dict = {
+    range_assignments_map: dict = {
         "C3:D3": {
             "names": [["Meeting Day", "Meeting Date"]],  # C3,D3
             "values": [[None, None]],  # C3,D3
@@ -172,4 +172,4 @@ class RangeAssignmentsReverse(RangeAssignments):
     def populate_values(self, meeting_assignments: dict) -> None:
         """populate the meeting assignments"""
         super().populate_values(meeting_assignments)
-        return self._range_assignments_map
+        return self.range_assignments_map

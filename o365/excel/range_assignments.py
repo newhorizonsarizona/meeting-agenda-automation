@@ -1,7 +1,7 @@
 class RangeAssignments:
     """This class is used for storing the meeting range assignments"""
 
-    _range_assignments_map: dict = {
+    range_assignments_map: dict = {
         "C3:D3": {
             "names": [["Meeting Day", "Meeting Date"]],  # C3,D3
             "values": [[None, None]],  # C3,D3
@@ -178,7 +178,7 @@ class RangeAssignments:
             meeting_assignment_value,
         ) in meeting_assignments.items():
             value_populated: bool = False
-            for range_assignment_value_map in self._range_assignments_map.values():
+            for range_assignment_value_map in self.range_assignments_map.values():
                 value_row_idx: int = 0
                 for range_assignment_value_row_values in range_assignment_value_map[
                     "names"
@@ -206,4 +206,4 @@ class RangeAssignments:
                 if value_populated:
                     break
 
-        return self._range_assignments_map
+        return self.range_assignments_map

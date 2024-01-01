@@ -1,8 +1,8 @@
 import httpx
 import requests
 
-from auth.auth_helper import AuthHelper
-from exception.agenda_exception import AgendaException
+from o365.auth.auth_helper import AuthHelper
+from o365.exception.agenda_exception import AgendaException
 
 
 class GraphHelper:

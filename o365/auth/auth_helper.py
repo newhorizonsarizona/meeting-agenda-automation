@@ -8,8 +8,10 @@ from kiota_authentication_azure.azure_identity_authentication_provider import (
     AzureIdentityAuthenticationProvider,
 )
 
-tenant_id = "9add987e-b316-43b4-8750-4007763832b0"
-client_id = "68e11217-f842-4df4-8720-75a08c58f491"
+from o365.util.constants import Constants
+
+tenant_id = Constants.TENANT_ID
+client_id = Constants.CLIENT_ID
 client_secret = os.environ["CLIENT_SECRET"]
 
 
