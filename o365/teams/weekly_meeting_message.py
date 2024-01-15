@@ -1,19 +1,18 @@
 class WeeklyMeetingMessage:
     """This class is used for storing the weekly meeting message"""
 
-    _subject: str = "{0} - WEEKLY MEETING"
-    _message: str = """
-                            {0} WEEKLY MEETING @ Cadence Living in Chandler, 100 W Queen Creek Rd., Chandler, AZ 85248\n
-                            Dear New Horizons Toastmasters Club members,\n
-                                Please find attached the agenda for the {1} meeting. This is going to be a hybrid meeting. Guests are welcome.\n
-                                {2} please place your speech introduction(s) and evaluation forms in the meeting folder. {3} please post the\n
-                                meeting theme here.\n
-                                <u>Meeting Folder:</u> {4}\n
-                                <u>Agenda:</u> {5}\n
-                                REMINDERS: Please mute your phones\n
-                            Best Regards,\n
-                            NHTM Education Committee
-                    """
+    _subject: str = "{meeting_date} - WEEKLY MEETING"
+    _message: str = " \
+        {meeting_date} WEEKLY MEETING @ Cadence Living in Chandler, 100 W Queen Creek Rd., Chandler, AZ 85248<br/> \
+        Dear New Horizons Toastmasters Club members,<br/><br/> \
+            Please find attached the agenda for the {meeting_day}, {meeting_date} meeting. This is going to be a hybrid meeting. Guests are welcome.<br/> \
+            {speakers_mention} please place your speech introduction(s) and evaluation forms in the meeting folder. {topics_master_mention} please post the<br/> \
+            meeting theme here.<br/><br/> \
+            <u>Meeting Folder:</u> {meeting_folder_url}<br/> \
+            <u>Agenda:</u> {meeting_agenda_url}<br/> \
+            <b>REMINDERS:</b> Please mute your phones<br/><br/> \
+        Best Regards,<br/> \
+        NHTM Education Committee"
     speaker_users: list = []
     topics_master_user = None
     meeting_agenda_item = None
@@ -30,7 +29,7 @@ class WeeklyMeetingMessage:
         meeting_agenda_item,
     ) -> None:
         """initialize the message assignments"""
-        self._subject.format(meeting_date)
+        self._subject = self._subject.format(meeting_date=meeting_date)
         self.speaker_users = speaker_users
         self.topics_master_user = topics_master_user
         self.meeting_agenda_item = meeting_agenda_item
@@ -45,13 +44,13 @@ class WeeklyMeetingMessage:
         topics_master_mention = (
             f'<at id="{mention_id}">{topics_master_user["displayName"]}</at>'
         )
-        self._message.format(
-            meeting_date,
-            meeting_day,
-            speakers_mention,
-            topics_master_mention,
-            meeting_folder_item["webUrl"],
-            meeting_agenda_item["webUrl"],
+        self._message = self._message.format(
+            meeting_date=meeting_date,
+            meeting_day=meeting_day,
+            speakers_mention=speakers_mention,
+            topics_master_mention=topics_master_mention,
+            meeting_folder_url=meeting_folder_item["webUrl"],
+            meeting_agenda_url=meeting_agenda_item["webUrl"],
         )
 
     @property

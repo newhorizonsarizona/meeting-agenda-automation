@@ -151,7 +151,7 @@ class AgendaCreator:
         """Copy agenda template to the meeting folder"""
         retry_count = 0
         agenda_item = None
-        while retry_count < 5:
+        while retry_count < 10:
             try:
                 print(
                     f"Copying the agenda template {template_item_id} to meeting folder: {meeting_folder_item_id}"
@@ -169,7 +169,7 @@ class AgendaCreator:
                     return copy_status
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 5:
+                    if retry_count < 10:
                         retry_count = retry_count + 1
                         time.sleep(10)
             except Exception as ex:
@@ -243,7 +243,7 @@ class AgendaCreator:
         """Create the Agenda worksheet id"""
         retry_count = 0
         excel_worksheet_id = None
-        while retry_count < 3:
+        while retry_count < 10:
             try:
                 print(f"Getting the agenda worksheet id for drive item: {item_id}")
                 worksheets = asyncio.run(
@@ -255,7 +255,7 @@ class AgendaCreator:
                             return worksheet.id
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 5:
+                    if retry_count < 10:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:

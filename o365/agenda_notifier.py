@@ -1,3 +1,4 @@
+import json
 import time
 from o365.agenda_creator import AgendaCreator
 from o365.auth.auth_helper import AuthHelper
@@ -67,6 +68,25 @@ class AgendaNotifier(AgendaCreator):
             if channels and channels["value"] is not None:
                 print(channels["value"])
                 return channels["value"]
+        except Exception as e:
+            print(f"Error: {e}")
+        return None
+    
+    
+    # POST /teams/{team-id}/channels/{channel-id}/messages
+    def _post_message_to_channel(self, team_id: str, channel_id: str, chat_message: dict):
+        """Post chat message to specified channel in team"""
+        try:
+            print(f"Posting message to teams channel that matches the id {channel_id}")
+            graph_helper: GraphHelper = GraphHelper(True)
+            messages = graph_helper.post_request(
+                f"/teams/{team_id}/channels/{channel_id}/messages",
+                json.dumps(chat_message, indent=None),
+                {"Content-Type": "application/json"}
+            )
+            if messages and messages["id"] is not None:
+                print(messages["id"])
+                return messages["id"]
         except Exception as e:
             print(f"Error: {e}")
         return None
@@ -156,9 +176,11 @@ class AgendaNotifier(AgendaCreator):
             channel = self._get_teams_channel_by_display_name(
                 group_id, "Weekly Meeting Channel"
             )
-            if channel is not None:
-                message = TeamsHelper.post_message_to_channel(
-                    graph_client, group_id, channel[0]["id"], meeting_message
+            chat_message = TeamsHelper.generate_chat_message_dict(meeting_message)
+            print(chat_message)
+            if channel is not None and chat_message is not None:
+                message = self._post_message_to_channel(
+                    group_id, channel[0]["id"], chat_message
                 )
                 if message is not None:
                     print(
