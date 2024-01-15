@@ -1,11 +1,13 @@
 {
-    "azureFunctions.deploySubpath": "o365",
+    "azureFunctions.deploySubpath": "agenda_http_trigger",
     "azureFunctions.scmDoBuildDuringDeployment": true,
-    "azureFunctions.pythonVenv": "o365/.venv",
+    "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
-    "python.analysis.extraPaths": [
-        "./meeting_timer_trigger/"
-    ]
+    "python.analysis.extraPaths": [],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }

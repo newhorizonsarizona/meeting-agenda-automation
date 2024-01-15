@@ -1,5 +1,7 @@
-class RangeAssignments:
-    """This class is used for storing the meeting range assignments"""
+from o365.excel.range_assignments import RangeAssignments
+
+class RangeAssignmentsReverse(RangeAssignments):
+    """This class is used for storing the reverse meeting range assignments"""
 
     range_assignments_map: dict = {
         "C3:D3": {
@@ -8,45 +10,44 @@ class RangeAssignments:
             "formats": [[None, "d-mmm-yy"]],  # C3,D3
             "formulas": [[None, None]],  # C3,D3
         },
-        "G5:G41": {
+        "G5:G40": {
             "names": [
                 ["Presiding Officer"],  # G5
                 [None],  # G6
-                ["Joke Master"],  # G7
-                ["Toastmaster"],  # G8
-                ["General Evaluator"],  # G9
-                [None],  # G10
-                ["Grammarian"],  # G11
-                ["Manual Evaluator 1"],  # G12
-                ["Manual Evaluator 2"],  # G13
-                ["Manual Evaluator 3"],  # G14
-                ["Ah Counter"],  # G15
-                ["Timer"],  # G16
-                ["Speaker 1"],  # G17
-                [None],  # G18
-                ["Speaker 2"],  # G19
+                ["WOW"],  # G7
+                ["GEM"],  # G8
+                [None],  # G9
+                ["Ballot Counter"],  # G10
+                ["Toastmaster"],  # G11
+                ["General Evaluator"],  # G12
+                ["Grammarian"],  # G13
+                ["Ah Counter"],  # G14
+                ["Timer"],  # G15
+                ["Manual Evaluator 3"],  # G16
+                ["Manual Evaluator 2"],  # G17
+                ["Manual Evaluator 1"],  # G18
+                ["Toastmaster"],  # G19
                 [None],  # G20
-                ["Speaker 3"],  # G21
-                ["Topics Master"],  # G22
+                ["Topics Master"],  # G21
+                ["Speaker 3"],  # G22
                 [None],  # G23
-                [None],  # G24
-                ["General Evaluator"],  # G25
-                [None],  # G26
-                ["Manual Evaluator 1"],  # G27
-                ["Manual Evaluator 2"],  # G28
-                ["Manual Evaluator 3"],  # G29
-                ["Ballot Counter"],  # G30
-                ["Timer"],  # G31
-                ["Ah Counter"],  # G32
-                ["Grammarian"],  # G33
-                ["General Evaluator"],  # G34
+                ["Speaker 2"],  # G24
+                [None],  # G25
+                ["Speaker 1"],  # G26
+                ["General Evaluator"],  # G27
+                [None],  # G28
+                ["Timer"],  # G29
+                ["Ah Counter"],  # G30
+                ["Manual Evaluator 3"],  # G31
+                ["Manual Evaluator 2"],  # G32
+                ["Manual Evaluator 1"],  # G33
+                ["Grammarian"],  # G34
                 ["Toastmaster"],  # G35
                 [None],  # G36
-                ["GEM"],  # G37
-                ["WOW"],  # G38
+                ["Joke Master"],  # G37
+                [None],  # G38
                 [None],  # G39
-                [None],  # G40
-                ["Presiding Officer"],  # G41
+                ["Presiding Officer"],  # G40
             ],
             "values": [
                 [None],  # G5
@@ -85,7 +86,6 @@ class RangeAssignments:
                 [None],  # G38
                 [None],  # G39
                 [None],  # G40
-                [None],  # G41
             ],
             "formats": [
                 [None],  # G5
@@ -124,7 +124,6 @@ class RangeAssignments:
                 [None],  # G38
                 [None],  # G39
                 [None],  # G40
-                [None],  # G41
             ],
             "formulas": [
                 ["=A5"],  # G5
@@ -141,7 +140,7 @@ class RangeAssignments:
                 [None],  # G16
                 [None],  # G17
                 [None],  # G18
-                [None],  # G19
+                ["=G11"],  # G19
                 [None],  # G20
                 [None],  # G21
                 [None],  # G22
@@ -150,60 +149,27 @@ class RangeAssignments:
                 ["=G9"],  # G25
                 [None],  # G26
                 ["=G12"],  # G27
-                ["=G13"],  # G28
-                ["=G14"],  # G29
-                [None],  # G30
+                [None],  # G28
+                ["=G15"],  # G29
+                ["=G14"],  # G30
                 ["=G16"],  # G31
-                ["=G15"],  # G32
-                ["=G11"],  # G33
-                ["=G9"],  # G34
-                ["=G8"],  # G35
+                ["=G17"],  # G32
+                ["=G18"],  # G33
+                ["=G13"],  # G34
+                ["=G11"],  # G35
                 [None],  # G36
                 [None],  # G37
                 [None],  # G38
                 [None],  # G39
-                [None],  # G40
-                ["=G5"],  # G41
+                ["=G5"],  # G40
             ],
         },
     }
 
     def __init__(self) -> None:
-        """initialize the range assignments"""
+        """initialize the reverse range assignments"""
 
     def populate_values(self, meeting_assignments: dict) -> None:
         """populate the meeting assignments"""
-        for (
-            meeting_assignment_key,
-            meeting_assignment_value,
-        ) in meeting_assignments.items():
-            value_populated: bool = False
-            for range_assignment_value_map in self.range_assignments_map.values():
-                value_row_idx: int = 0
-                for range_assignment_value_row_values in range_assignment_value_map[
-                    "names"
-                ]:
-                    value_column_idx: int = 0
-                    for (
-                        range_assignment_value_col_value
-                    ) in range_assignment_value_row_values:
-                        if (
-                            range_assignment_value_map["formulas"][value_row_idx][
-                                value_column_idx
-                            ]
-                            == None
-                            and meeting_assignment_key
-                            == range_assignment_value_col_value
-                        ):
-                            range_assignment_value_map["values"][value_row_idx][
-                                value_column_idx
-                            ] = meeting_assignment_value
-                            value_populated = True
-                        value_column_idx += 1
-                    if value_populated:
-                        break
-                    value_row_idx += 1
-                if value_populated:
-                    break
-
+        super().populate_values(meeting_assignments)
         return self.range_assignments_map
