@@ -16,6 +16,9 @@ msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
 azure-functions = "*"
+black = "*"
+pylint = "*"
+pyinstaller = "*"
 
 [requires]
 python_version = "3.11"

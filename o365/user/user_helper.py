@@ -23,7 +23,9 @@ class UserHelper:
 
     @staticmethod
     # GET /users?$filter=startswith(displayName,'a')&$orderby=displayName&$count=true&$top=1
-    async def get_user_by_display_name(graph_client: GraphServiceClient, display_name: str):
+    async def get_user_by_display_name(
+        graph_client: GraphServiceClient, display_name: str
+    ):
         """Gets the user by display name"""
         try:
             query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
@@ -54,14 +56,16 @@ class UserHelper:
         assigned_to_user = None
         while retry_count < 5:
             try:
-                print(f"Getting the assigned to user with display name : {display_name}")
+                print(
+                    f"Getting the assigned to user with display name : {display_name}"
+                )
                 user = asyncio.run(
                     UserHelper.get_user_by_display_name(graph_client, display_name)
                 )
                 if user is not None:
                     print(user)
                     return user
-                
+
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 5:

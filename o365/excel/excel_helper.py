@@ -39,7 +39,7 @@ class ExcelHelper:
             f"Gets the range value in excel file {item_id} for worksheet {worksheet_id} of specified range address {range_address}"
         )
         try:
-            #range_address_query = "{" + range_address + "}"
+            # range_address_query = "{" + range_address + "}"
             print(f"Getting range {range_address}")
             range_value = (
                 await graph_client.drives.by_drive_id(drive_id)

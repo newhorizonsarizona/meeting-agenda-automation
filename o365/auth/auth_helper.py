@@ -13,7 +13,8 @@ from o365.util.constants import Constants
 tenant_id = Constants.TENANT_ID
 client_id = Constants.CLIENT_ID
 client_secret = os.environ["CLIENT_SECRET"]
-user_auth_code = os.environ["USER_AUTH_CODE"]
+user_auth_code = os.environ.get("USER_AUTH_CODE")
+
 
 class AuthHelper:
     """Helper for authorization"""
@@ -34,7 +35,7 @@ class AuthHelper:
         )
         if token and token["access_token"] is not None:
             return token["access_token"]
-    
+
     @staticmethod
     def acquire_token_auth_code():
         """
@@ -47,9 +48,7 @@ class AuthHelper:
             client_credential=client_secret,
         )
         token = app.acquire_token_by_authorization_code(
-            user_auth_code, 
-            scopes=["user.read"],
-            redirect_uri="http://localhost"
+            user_auth_code, scopes=["user.read"], redirect_uri="https://weeklymeetingagenda.azurewebsites.net/"
         )
         if token:
             if token.get("access_token") is not None:

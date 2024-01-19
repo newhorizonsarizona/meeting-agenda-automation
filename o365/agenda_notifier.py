@@ -21,11 +21,15 @@ class AgendaNotifier(AgendaCreator):
         """initialize the agenda notifier"""
         super().__init__(today_date)
 
-     # GET /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:B2')?$select=values
-    def _get_range_values(self, drive_id: str, item_id: str, worksheet_id: str, range_address: str):
+    # GET /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:B2')?$select=values
+    def _get_range_values(
+        self, drive_id: str, item_id: str, worksheet_id: str, range_address: str
+    ):
         """Search the the drive id for matching item"""
         try:
-            print(f"Getting the range values for item matching {item_id} for range address {range_address}")
+            print(
+                f"Getting the range values for item matching {item_id} for range address {range_address}"
+            )
             graph_helper: GraphHelper = GraphHelper()
             range_values = graph_helper.get_request(
                 f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')?$select=values",
@@ -71,10 +75,11 @@ class AgendaNotifier(AgendaCreator):
         except Exception as e:
             print(f"Error: {e}")
         return None
-    
-    
+
     # POST /teams/{team-id}/channels/{channel-id}/messages
-    def _post_message_to_channel(self, team_id: str, channel_id: str, chat_message: dict):
+    def _post_message_to_channel(
+        self, team_id: str, channel_id: str, chat_message: dict
+    ):
         """Post chat message to specified channel in team"""
         try:
             print(f"Posting message to teams channel that matches the id {channel_id}")
@@ -82,7 +87,7 @@ class AgendaNotifier(AgendaCreator):
             messages = graph_helper.post_request(
                 f"/teams/{team_id}/channels/{channel_id}/messages",
                 json.dumps(chat_message, indent=None),
-                {"Content-Type": "application/json"}
+                {"Content-Type": "application/json"},
             )
             if messages and messages["id"] is not None:
                 print(messages["id"])
@@ -90,7 +95,7 @@ class AgendaNotifier(AgendaCreator):
         except Exception as e:
             print(f"Error: {e}")
         return None
-    
+
     def send(self):
         """Send the agenda notification on teams"""
         print("Preparing agenda notification")
@@ -133,7 +138,7 @@ class AgendaNotifier(AgendaCreator):
             )
             range_assignments_map: dict = range_assignments.range_assignments_map
             for range_assignment_value_map in range_assignments_map.values():
-                range_column: str = 'G'
+                range_column: str = "G"
                 range_row: int = 5
                 for range_assignment_value_row_values in range_assignment_value_map[
                     "names"
@@ -147,15 +152,22 @@ class AgendaNotifier(AgendaCreator):
                             drive.id,
                             next_meeting_agenda_excel_item_id,
                             agenda_worksheet_id,
-                            f'{range_column}{range_row}',
+                            f"{range_column}{range_row}",
                         )
                         if range_values:
-                            if "Speaker" in range_assignment_value_col_value and range_values[0][0] != '':
-                                speaker_user = self._get_user_by_display_name(range_values[0][0])
+                            if (
+                                "Speaker" in range_assignment_value_col_value
+                                and range_values[0][0] != ""
+                            ):
+                                speaker_user = self._get_user_by_display_name(
+                                    range_values[0][0]
+                                )
                                 if speaker_user is not None:
                                     speakers.append(speaker_user[0])
                             elif "Topics Master" in range_assignment_value_col_value:
-                                topics_master_user = self._get_user_by_display_name(range_values[0][0])
+                                topics_master_user = self._get_user_by_display_name(
+                                    range_values[0][0]
+                                )
                                 if topics_master_user is not None:
                                     topics_master = topics_master_user[0]
                     range_row += 1

@@ -1,8 +1,10 @@
 import asyncio
 from logging import error
 import time
-from msgraph import GraphServiceClient  
-from msgraph.generated.planner.plans.item.planner_plan_item_request_builder import PlannerPlanItemRequestBuilder
+from msgraph import GraphServiceClient
+from msgraph.generated.planner.plans.item.planner_plan_item_request_builder import (
+    PlannerPlanItemRequestBuilder,
+)
 from kiota_abstractions.api_error import APIError
 
 
@@ -19,7 +21,7 @@ class PlannerHelper:
             return plans
         except APIError as e:
             print(f"Error: {e.error.message}")
-            
+
         return None
 
     @staticmethod
@@ -52,22 +54,30 @@ class PlannerHelper:
 
     @staticmethod
     # GET /planner/plans/{plan-id}
-    async def delete_plan(graph_client: GraphServiceClient, plan_id: str, etag: str = None):
+    async def delete_plan(
+        graph_client: GraphServiceClient, plan_id: str, etag: str = None
+    ):
         """Delete the plan with the specified id"""
         print(f"Deleting the plan with id {plan_id}")
         try:
-            request_configuration = PlannerPlanItemRequestBuilder.PlannerPlanItemRequestBuilderDeleteRequestConfiguration()
+            request_configuration = (
+                PlannerPlanItemRequestBuilder.PlannerPlanItemRequestBuilderDeleteRequestConfiguration()
+            )
             if etag is not None:
                 request_configuration.headers.add("If-Match", etag)
 
-            await graph_client.planner.plans.by_planner_plan_id(plan_id).delete(request_configuration = request_configuration)
+            await graph_client.planner.plans.by_planner_plan_id(plan_id).delete(
+                request_configuration=request_configuration
+            )
 
         except APIError as e:
             print(f"Error: {e.error.message}")
         return None
 
     @staticmethod
-    def get_plan_by_name(graph_client: GraphServiceClient, group_id: str, plan_name: str):
+    def get_plan_by_name(
+        graph_client: GraphServiceClient, group_id: str, plan_name: str
+    ):
         """Gets plan by name for the specified group_id"""
         retry_count = 0
         plan_by_name = None
@@ -89,7 +99,7 @@ class PlannerHelper:
                         print(e)
                         break  # do something here, like log the error
         return plan_by_name
-    
+
     @staticmethod
     def get_bucket_by_name(graph_client, plan_id, bucket_name):
         """Gets bucket by name for the specified plan id"""
@@ -97,9 +107,7 @@ class PlannerHelper:
         bucket_by_name = None
         while retry_count < 5:
             try:
-                print(
-                    f"Getting the bucket in plan: {plan_id}"
-                )
+                print(f"Getting the bucket in plan: {plan_id}")
                 buckets = asyncio.run(
                     PlannerHelper.get_all_buckets(graph_client, plan_id)
                 )
@@ -118,7 +126,6 @@ class PlannerHelper:
                         break  # do something here, like log the error
         return bucket_by_name
 
-    
     @staticmethod
     def fetch_tasks_in_bucket(graph_client, bucket_id):
         """Fetches all the tasks in the bucket"""
@@ -126,9 +133,7 @@ class PlannerHelper:
         tasks_in_bucket = None
         while retry_count < 5:
             try:
-                print(
-                    f"Getting the tasks in bucket: {bucket_id}"
-                )
+                print(f"Getting the tasks in bucket: {bucket_id}")
                 tasks = asyncio.run(
                     PlannerHelper.get_tasks_in_bucket(graph_client, bucket_id)
                 )
@@ -145,7 +150,12 @@ class PlannerHelper:
         return tasks_in_bucket
 
     @staticmethod
-    def delete_plan_by_name(graph_client: GraphServiceClient, group_id: str, plan_name: str, etag: str = None):
+    def delete_plan_by_name(
+        graph_client: GraphServiceClient,
+        group_id: str,
+        plan_name: str,
+        etag: str = None,
+    ):
         """Deletes plan by name for the specified group_id"""
         retry_count = 0
         plan_by_name = None

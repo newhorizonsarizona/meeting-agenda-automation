@@ -15,7 +15,7 @@ class GraphHelper:
     url = "https://graph.microsoft.com/v1.0/"
     headers = None
     timeout = 60
-    
+
     def __init__(self, obo_token: bool = False) -> None:
         """initialize the http helper"""
         self.access_token = AuthHelper.acquire_token()
@@ -62,13 +62,12 @@ class GraphHelper:
             )
         return None
 
-
     def post_request(self, path: str, data: str, headers: dict):
         """Make a POST request to the provided graph api path, passing the access token in a header"""
         request_url = f"{self.url}/{path}"
         self.headers.update(headers)
         return self._post(request_url, data, headers)
-    
+
     def patch_request(self, path: str, data: str, headers: dict):
         """Make a PATCH request to the provided graph api path, passing the access token in a header"""
         request_url = f"{self.url}/{path}"

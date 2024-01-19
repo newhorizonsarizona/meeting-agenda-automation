@@ -9,9 +9,11 @@ class MeetingUtil:
 
     _next_tuesday: datetime
 
-    def __init__(self, next_tuesday = None):
+    def __init__(self, next_tuesday=None):
         """Initialize the meeting utils class"""
-        self._next_tuesday = next_tuesday  if next_tuesday is not None else DateUtil().next_tuesday
+        self._next_tuesday = (
+            next_tuesday if next_tuesday is not None else DateUtil().next_tuesday
+        )
 
     @property
     def next_tuesday_meeting_docs(self):
