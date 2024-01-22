@@ -30,9 +30,7 @@ class PlannerHelper:
         """Gets all the buckets in the plan"""
         print("Getting all buckets in the plan")
         try:
-            buckets = await graph_client.planner.plans.by_planner_plan_id(
-                plan_id
-            ).buckets.get()
+            buckets = await graph_client.planner.plans.by_planner_plan_id(plan_id).buckets.get()
             return buckets
         except APIError as e:
             print(f"Error: {e.error.message}")
@@ -44,9 +42,7 @@ class PlannerHelper:
         """Gets all the planner tasks in the bucket"""
         print("Getting all tasks in the bucket")
         try:
-            tasks = await graph_client.planner.buckets.by_planner_bucket_id(
-                bucket_id
-            ).tasks.get()
+            tasks = await graph_client.planner.buckets.by_planner_bucket_id(bucket_id).tasks.get()
             return tasks
         except APIError as e:
             print(f"Error: {e.error.message}")
@@ -54,9 +50,7 @@ class PlannerHelper:
 
     @staticmethod
     # GET /planner/plans/{plan-id}
-    async def delete_plan(
-        graph_client: GraphServiceClient, plan_id: str, etag: str = None
-    ):
+    async def delete_plan(graph_client: GraphServiceClient, plan_id: str, etag: str = None):
         """Delete the plan with the specified id"""
         print(f"Deleting the plan with id {plan_id}")
         try:
@@ -75,9 +69,7 @@ class PlannerHelper:
         return None
 
     @staticmethod
-    def get_plan_by_name(
-        graph_client: GraphServiceClient, group_id: str, plan_name: str
-    ):
+    def get_plan_by_name(graph_client: GraphServiceClient, group_id: str, plan_name: str):
         """Gets plan by name for the specified group_id"""
         retry_count = 0
         plan_by_name = None
@@ -108,9 +100,7 @@ class PlannerHelper:
         while retry_count < 5:
             try:
                 print(f"Getting the bucket in plan: {plan_id}")
-                buckets = asyncio.run(
-                    PlannerHelper.get_all_buckets(graph_client, plan_id)
-                )
+                buckets = asyncio.run(PlannerHelper.get_all_buckets(graph_client, plan_id))
                 if buckets and buckets.value:
                     for bucket in buckets.value:
                         if bucket_name in bucket.name:
@@ -134,9 +124,7 @@ class PlannerHelper:
         while retry_count < 5:
             try:
                 print(f"Getting the tasks in bucket: {bucket_id}")
-                tasks = asyncio.run(
-                    PlannerHelper.get_tasks_in_bucket(graph_client, bucket_id)
-                )
+                tasks = asyncio.run(PlannerHelper.get_tasks_in_bucket(graph_client, bucket_id))
                 if tasks and tasks.value:
                     return tasks
             except RuntimeError as e:
@@ -164,9 +152,7 @@ class PlannerHelper:
                 print(f"Getting the plan to delete with name {plan_name}")
                 plan = PlannerHelper.get_plan_by_name(graph_client, group_id, plan_name)
                 if plan is None:
-                    print(
-                        f"No matching plan found with name {plan_name} in group {group_id}"
-                    )
+                    print(f"No matching plan found with name {plan_name} in group {group_id}")
                     continue
                 asyncio.run(PlannerHelper.delete_plan(graph_client, plan.id, etag))
             except RuntimeError as e:

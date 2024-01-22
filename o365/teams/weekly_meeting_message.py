@@ -37,12 +37,10 @@ class WeeklyMeetingMessage:
         speakers_mention = ""
         mention_id = 0
         for speaker_user in speaker_users:
-            speakers_mention += (
-                f'<at id="{mention_id}">{speaker_user["displayName"]}</at>, '
-            )
+            speakers_mention += f'<at id="{mention_id}">{speaker_user["displayName"]}</at>, '
             mention_id += 1
         topics_master_mention = f'<at id="{mention_id}">{topics_master_user["displayName"]}</at>'
-        attachments = ''#f'<attachment id="{meeting_agenda_item["id"]}">{meeting_agenda_item["name"]}</attachment>'
+        attachments = ""  # f'<attachment id="{meeting_agenda_item["id"]}">{meeting_agenda_item["name"]}</attachment>'
         self._message = self._message.format(
             meeting_date=meeting_date,
             meeting_day=meeting_day,

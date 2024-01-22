@@ -22,14 +22,10 @@ class AgendaNotifier(AgendaCreator):
         super().__init__(today_date)
 
     # GET /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:B2')?$select=values
-    def _get_range_values(
-        self, drive_id: str, item_id: str, worksheet_id: str, range_address: str
-    ):
+    def _get_range_values(self, drive_id: str, item_id: str, worksheet_id: str, range_address: str):
         """Search the the drive id for matching item"""
         try:
-            print(
-                f"Getting the range values for item matching {item_id} for range address {range_address}"
-            )
+            print(f"Getting the range values for item matching {item_id} for range address {range_address}")
             graph_helper: GraphHelper = GraphHelper()
             range_values = graph_helper.get_request(
                 f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')?$select=values",
@@ -77,9 +73,7 @@ class AgendaNotifier(AgendaCreator):
         return None
 
     # POST /teams/{team-id}/channels/{channel-id}/messages
-    def _post_message_to_channel(
-        self, team_id: str, channel_id: str, chat_message: dict
-    ):
+    def _post_message_to_channel(self, team_id: str, channel_id: str, chat_message: dict):
         """Post chat message to specified channel in team"""
         try:
             print(f"Posting message to teams channel that matches the id {channel_id}")
@@ -105,9 +99,7 @@ class AgendaNotifier(AgendaCreator):
             drive = self.get_drive(graph_client, group_id)
             print(f"Drive id: {drive.id}")
             meeting_docs_folder = self._next_tuesday_meeting_docs
-            wmc_drive_item = self.search_item_with_name(
-                drive.id, "Weekly Meeting Channel"
-            )
+            wmc_drive_item = self.search_item_with_name(drive.id, "Weekly Meeting Channel")
             wmc_drive_item_id = wmc_drive_item["id"]
             print(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
 
@@ -121,9 +113,7 @@ class AgendaNotifier(AgendaCreator):
                 graph_client, drive.id, None, meeting_docs_folder_item_id, False
             )
             next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
-            print(
-                f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}"
-            )
+            print(f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}")
             agenda_worksheet_id = self._get_agenda_worksheet_id(
                 graph_client, drive.id, next_meeting_agenda_excel_item_id
             )
@@ -132,20 +122,14 @@ class AgendaNotifier(AgendaCreator):
             speakers: list = []
             topics_master = None
             range_assignments: RangeAssignments = (
-                RangeAssignments()
-                if not self._is_next_meeting_reverse
-                else RangeAssignmentsReverse()
+                RangeAssignments() if not self._is_next_meeting_reverse else RangeAssignmentsReverse()
             )
             range_assignments_map: dict = range_assignments.range_assignments_map
             for range_assignment_value_map in range_assignments_map.values():
                 range_column: str = "G"
                 range_row: int = 5
-                for range_assignment_value_row_values in range_assignment_value_map[
-                    "names"
-                ]:
-                    for (
-                        range_assignment_value_col_value
-                    ) in range_assignment_value_row_values:
+                for range_assignment_value_row_values in range_assignment_value_map["names"]:
+                    for range_assignment_value_col_value in range_assignment_value_row_values:
                         if range_assignment_value_col_value is None:
                             continue
                         range_values = self._get_range_values(
@@ -155,26 +139,17 @@ class AgendaNotifier(AgendaCreator):
                             f"{range_column}{range_row}",
                         )
                         if range_values:
-                            if (
-                                "Speaker" in range_assignment_value_col_value
-                                and range_values[0][0] != ""
-                            ):
-                                speaker_user = self._get_user_by_display_name(
-                                    range_values[0][0]
-                                )
+                            if "Speaker" in range_assignment_value_col_value and range_values[0][0] != "":
+                                speaker_user = self._get_user_by_display_name(range_values[0][0])
                                 if speaker_user is not None:
                                     speakers.append(speaker_user[0])
                             elif "Topics Master" in range_assignment_value_col_value:
-                                topics_master_user = self._get_user_by_display_name(
-                                    range_values[0][0]
-                                )
+                                topics_master_user = self._get_user_by_display_name(range_values[0][0])
                                 if topics_master_user is not None:
                                     topics_master = topics_master_user[0]
                     range_row += 1
 
-            print(
-                f"Successfully fetched assignments from the agenda for the next meeting on {self._next_tuesday_date}"
-            )
+            print(f"Successfully fetched assignments from the agenda for the next meeting on {self._next_tuesday_date}")
             print(f"Speakers: {speakers}, Topics Master: {topics_master}")
             meeting_message: WeeklyMeetingMessage = WeeklyMeetingMessage(
                 self._next_tuesday_date,
@@ -185,19 +160,13 @@ class AgendaNotifier(AgendaCreator):
                 next_meeting_agenda_excel_item,
             )
             teams_helper: TeamsHelper = TeamsHelper()
-            channel = self._get_teams_channel_by_display_name(
-                group_id, "Weekly Meeting Channel"
-            )
+            channel = self._get_teams_channel_by_display_name(group_id, "Weekly Meeting Channel")
             chat_message = TeamsHelper.generate_chat_message_dict(meeting_message)
             print(chat_message)
             if channel is not None and chat_message is not None:
-                message = self._post_message_to_channel(
-                    group_id, channel[0]["id"], chat_message
-                )
+                message = self._post_message_to_channel(group_id, channel[0]["id"], chat_message)
                 if message is not None:
-                    print(
-                        f"Successfully posted message to the teams, 'Weekly Meeting Channel' channel."
-                    )
+                    print(f"Successfully posted message to the teams, 'Weekly Meeting Channel' channel.")
             return
         except RuntimeError as e:
             print(f"Error sending agenda notification. {e}")

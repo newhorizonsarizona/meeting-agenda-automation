@@ -30,9 +30,7 @@ class AuthHelper:
             client_id=client_id,
             client_credential=client_secret,
         )
-        token = app.acquire_token_for_client(
-            scopes=["https://graph.microsoft.com/.default"]
-        )
+        token = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
         if token and token["access_token"] is not None:
             return token["access_token"]
 
@@ -48,7 +46,9 @@ class AuthHelper:
             client_credential=client_secret,
         )
         token = app.acquire_token_by_authorization_code(
-            user_auth_code, scopes=["user.read"], redirect_uri="https://weeklymeetingagenda.azurewebsites.net/"
+            user_auth_code,
+            scopes=["user.read"],
+            redirect_uri="https://weeklymeetingagenda.azurewebsites.net/",
         )
         if token:
             if token.get("access_token") is not None:
@@ -86,9 +86,7 @@ class AuthHelper:
         credential: ClientSecretCredential = AuthHelper.client_service_credential()
         auth_provider = AzureIdentityAuthenticationProvider(credential)
         timeout = httpx.Timeout(connect=90, read=180, write=120, pool=None)
-        limits = httpx.Limits(
-            max_keepalive_connections=20, max_connections=50, keepalive_expiry=30
-        )
+        limits = httpx.Limits(max_keepalive_connections=20, max_connections=50, keepalive_expiry=30)
         http_client = GraphClientFactory.create_with_default_middleware(
             client=httpx.AsyncClient(timeout=timeout, limits=limits)
         )

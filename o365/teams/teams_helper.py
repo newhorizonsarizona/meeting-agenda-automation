@@ -30,18 +30,14 @@ class TeamsHelper:
 
     @staticmethod
     # GET /teams/{team-id}/channels?$startswith(displayName,'a')
-    async def get_channels(
-        graph_client: GraphServiceClient, team_id: str, display_name: str = None
-    ):
+    async def get_channels(graph_client: GraphServiceClient, team_id: str, display_name: str = None):
         """Gets all the channels for a team/group"""
         try:
             print(f"Getting all the channels for {team_id}")
             request_configuration = None
             if display_name is not None:
-                query_params = (
-                    ChannelsRequestBuilder.ChannelsRequestBuilderGetQueryParameters(
-                        filter=f"startswith(displayName,'{display_name}')",
-                    )
+                query_params = ChannelsRequestBuilder.ChannelsRequestBuilderGetQueryParameters(
+                    filter=f"startswith(displayName,'{display_name}')",
                 )
 
                 request_configuration = ChannelsRequestBuilder.ChannelsRequestBuilderGetRequestConfiguration(
@@ -77,9 +73,7 @@ class TeamsHelper:
             ),
         )
         chat_message_mentions = []
-        mention_users = meeting_message.speaker_users + [
-            meeting_message.topics_master_user
-        ]
+        mention_users = meeting_message.speaker_users + [meeting_message.topics_master_user]
 
         if meeting_message.subject is not None:
             chat_message.subject = meeting_message.subject
@@ -123,9 +117,7 @@ class TeamsHelper:
             "content": f"{meeting_message.message}",
         }
         created_date_time = datetime.date.today() + datetime.timedelta(minutes=10)
-        chat_message["created_date"] = created_date_time = created_date_time.strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )
+        chat_message["created_date"] = created_date_time = created_date_time.strftime("%Y-%m-%dT%H:%M:%S")
         # chat_message["from"] = {
         #         "user": {
         #             "id": "019a5991-0ce0-43a4-a5c4-e54932c6ed5f",
@@ -141,9 +133,7 @@ class TeamsHelper:
         #     }
         # ]
         chat_message_mentions = []
-        mention_users = meeting_message.speaker_users + [
-            meeting_message.topics_master_user
-        ]
+        mention_users = meeting_message.speaker_users + [meeting_message.topics_master_user]
         mention_id = 0
         for mention_user in mention_users:
             chat_message_mentions.append(
@@ -197,9 +187,7 @@ class TeamsHelper:
         while retry_count < 5:
             try:
                 print(f"Getting the channel {channel_name} for team: {team_id}")
-                channels = asyncio.run(
-                    TeamsHelper.get_channels(graph_client, team_id, channel_name)
-                )
+                channels = asyncio.run(TeamsHelper.get_channels(graph_client, team_id, channel_name))
                 print(channels)
                 if channels and channels.value:
                     if len(channels.value) > 0:
@@ -216,9 +204,7 @@ class TeamsHelper:
 
     @staticmethod
     # GET /teams/{team-id}/channels/{channel-id}/messages
-    def post_message_to_channel(
-        graph_client, team_id, channel_id, meeting_message: WeeklyMeetingMessage
-    ):
+    def post_message_to_channel(graph_client, team_id, channel_id, meeting_message: WeeklyMeetingMessage):
         """Post the message to a teams channel"""
         retry_count = 0
         message_item = None
@@ -226,9 +212,7 @@ class TeamsHelper:
             try:
                 print(f"Posting message to channel {channel_id} for team: {team_id}")
                 message_response = asyncio.run(
-                    TeamsHelper.post_message(
-                        graph_client, team_id, channel_id, meeting_message
-                    )
+                    TeamsHelper.post_message(graph_client, team_id, channel_id, meeting_message)
                 )
                 if message_response:
                     return message_response

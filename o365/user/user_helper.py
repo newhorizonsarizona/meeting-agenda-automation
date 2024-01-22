@@ -23,9 +23,7 @@ class UserHelper:
 
     @staticmethod
     # GET /users?$filter=startswith(displayName,'a')&$orderby=displayName&$count=true&$top=1
-    async def get_user_by_display_name(
-        graph_client: GraphServiceClient, display_name: str
-    ):
+    async def get_user_by_display_name(graph_client: GraphServiceClient, display_name: str):
         """Gets the user by display name"""
         try:
             query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
@@ -36,15 +34,11 @@ class UserHelper:
                 top=1,
             )
 
-            request_configuration = (
-                UsersRequestBuilder.UsersRequestBuilderGetRequestConfiguration(
-                    query_parameters=query_params,
-                )
+            request_configuration = UsersRequestBuilder.UsersRequestBuilderGetRequestConfiguration(
+                query_parameters=query_params,
             )
 
-            user = await graph_client.users.get(
-                request_configuration=request_configuration
-            )
+            user = await graph_client.users.get(request_configuration=request_configuration)
             return user
         except APIError as e:
             print(f"Error: {e.error.message}")
@@ -56,12 +50,8 @@ class UserHelper:
         assigned_to_user = None
         while retry_count < 5:
             try:
-                print(
-                    f"Getting the assigned to user with display name : {display_name}"
-                )
-                user = asyncio.run(
-                    UserHelper.get_user_by_display_name(graph_client, display_name)
-                )
+                print(f"Getting the assigned to user with display name : {display_name}")
+                user = asyncio.run(UserHelper.get_user_by_display_name(graph_client, display_name))
                 if user is not None:
                     print(user)
                     return user

@@ -39,9 +39,7 @@ class AgendaCreator:
         self._next_tuesday_month = date_util.next_tuesday_month
         meeting_util = MeetingUtil(self._next_tuesday)
         self._next_tuesday_meeting_docs = meeting_util.next_tuesday_meeting_docs
-        self._next_tuesday_meeting_agenda_excel = (
-            meeting_util.next_tuesday_meeting_agenda_excel
-        )
+        self._next_tuesday_meeting_agenda_excel = meeting_util.next_tuesday_meeting_agenda_excel
         self._agenda_template_excel = meeting_util.agenda_template_excel
         self._is_next_meeting_reverse = meeting_util.is_next_meeting_reverse
 
@@ -54,12 +52,8 @@ class AgendaCreator:
                 print(f"Getting the assigned to user for task: {task.title}")
                 assigned_to_users = list(task.assignments.additional_data.keys())
                 if assigned_to_users is not None and len(assigned_to_users) > 0:
-                    assigned_to_user_id = list(task.assignments.additional_data.keys())[
-                        0
-                    ]
-                    user = asyncio.run(
-                        UserHelper.get_user(graph_client, assigned_to_user_id)
-                    )
+                    assigned_to_user_id = list(task.assignments.additional_data.keys())[0]
+                    user = asyncio.run(UserHelper.get_user(graph_client, assigned_to_user_id))
                     if user is not None:
                         return user
                 else:
@@ -94,21 +88,15 @@ class AgendaCreator:
                         break  # do something here, like log the error
         return drive_4_group
 
-    def _create_weekly_meeting_docs(
-        self, graph_client, drive_id, item_id, meeting_docs_folder
-    ):
+    def _create_weekly_meeting_docs(self, graph_client, drive_id, item_id, meeting_docs_folder):
         """Create the weekly meeting docs folder"""
         retry_count = 0
         folder_item_id = None
         while retry_count < 5:
             try:
-                print(
-                    f"Creating the folder {meeting_docs_folder} for drive item: {item_id}"
-                )
+                print(f"Creating the folder {meeting_docs_folder} for drive item: {item_id}")
                 folder_item = asyncio.run(
-                    DriveHelper.create_folder(
-                        graph_client, drive_id, item_id, meeting_docs_folder
-                    )
+                    DriveHelper.create_folder(graph_client, drive_id, item_id, meeting_docs_folder)
                 )
                 if folder_item and folder_item.id:
                     return folder_item.id
@@ -153,9 +141,7 @@ class AgendaCreator:
         agenda_item = None
         while retry_count < 10:
             try:
-                print(
-                    f"Copying the agenda template {template_item_id} to meeting folder: {meeting_folder_item_id}"
-                )
+                print(f"Copying the agenda template {template_item_id} to meeting folder: {meeting_folder_item_id}")
                 copy_status = asyncio.run(
                     DriveHelper.copy_item(
                         graph_client,
@@ -189,9 +175,7 @@ class AgendaCreator:
         """Searches and/or creates the next meeting docs folder and returns the item"""
         retry = 0
         while True:
-            meeting_docs_folder_item = self.search_item_with_name(
-                drive_id, meeting_docs_folder
-            )
+            meeting_docs_folder_item = self.search_item_with_name(drive_id, meeting_docs_folder)
             if meeting_docs_folder_item is not None:
                 return meeting_docs_folder_item
             if is_create_not_exist and retry == 0:
@@ -202,9 +186,7 @@ class AgendaCreator:
             if retry < 30:
                 time.sleep(30)
             else:
-                raise AgendaException(
-                    f"Could not find the id for the meeting docs folder {meeting_docs_folder}"
-                )
+                raise AgendaException(f"Could not find the id for the meeting docs folder {meeting_docs_folder}")
 
     def _do_next_meeting_agenda_excel_item_id(
         self,
@@ -246,9 +228,7 @@ class AgendaCreator:
         while retry_count < 10:
             try:
                 print(f"Getting the agenda worksheet id for drive item: {item_id}")
-                worksheets = asyncio.run(
-                    ExcelHelper.get_worksheets(graph_client, drive_id, item_id)
-                )
+                worksheets = asyncio.run(ExcelHelper.get_worksheets(graph_client, drive_id, item_id))
                 if worksheets and worksheets.value:
                     for worksheet in worksheets.value:
                         if worksheet.name == "Agenda":
@@ -268,9 +248,7 @@ class AgendaCreator:
     #    "formulas" : [[null, null], [null, "=B1*2"]],
     #    "numberFormat" : [[null,null], ["m-ddd", null]]
     # }
-    def _update_agenda_worksheet_range(
-        self, drive_id, item_id, worksheet_id, range_address, range_data: dict
-    ):
+    def _update_agenda_worksheet_range(self, drive_id, item_id, worksheet_id, range_address, range_data: dict):
         """Get the worksheet range"""
         try:
             print(
@@ -291,9 +269,7 @@ class AgendaCreator:
             print(f"Error: {e}")
         return None
 
-    def _populate_agenda_worksheet(
-        self, drive_id, item_id, worksheet_id, range_assignments_map: dict
-    ):
+    def _populate_agenda_worksheet(self, drive_id, item_id, worksheet_id, range_assignments_map: dict):
         """Populating the agenda worksheet based on specified range asssignments"""
         for range_key, range_value in range_assignments_map.items():
             range_data: dict = {
@@ -301,9 +277,7 @@ class AgendaCreator:
                 "formulas": range_value["formulas"],
                 "numberFormat": range_value["formats"],
             }
-            self._update_agenda_worksheet_range(
-                drive_id, item_id, worksheet_id, range_key, range_data
-            )
+            self._update_agenda_worksheet_range(drive_id, item_id, worksheet_id, range_key, range_data)
             time.sleep(2)
 
     def create(self):
@@ -314,9 +288,7 @@ class AgendaCreator:
             drive = self.get_drive(graph_client, Constants.GROUP_IDS[0])
             print(f"Drive id: {drive.id}")
             meeting_docs_folder = self._next_tuesday_meeting_docs
-            wmc_drive_item = self.search_item_with_name(
-                drive.id, "Weekly Meeting Channel"
-            )
+            wmc_drive_item = self.search_item_with_name(drive.id, "Weekly Meeting Channel")
             wmc_drive_item_id = wmc_drive_item["id"]
             print(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
 
@@ -325,40 +297,30 @@ class AgendaCreator:
             )["id"]
             print(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
 
-            ma_agenda_template_item = self.search_item_with_name(
-                drive.id, self._agenda_template_excel
-            )
+            ma_agenda_template_item = self.search_item_with_name(drive.id, self._agenda_template_excel)
             if ma_agenda_template_item is not None:
                 ma_agenda_template_item_id = ma_agenda_template_item["id"]
             print(f"NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}")
 
-            next_meeting_agenda_excel_item_id = (
-                self._do_next_meeting_agenda_excel_item_id(
-                    graph_client,
-                    drive.id,
-                    ma_agenda_template_item_id,
-                    meeting_docs_folder_item_id,
-                    True,
-                )["id"]
-            )
-            print(
-                f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}"
-            )
+            next_meeting_agenda_excel_item_id = self._do_next_meeting_agenda_excel_item_id(
+                graph_client,
+                drive.id,
+                ma_agenda_template_item_id,
+                meeting_docs_folder_item_id,
+                True,
+            )["id"]
+            print(f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}")
 
             agenda_worksheet_id = self._get_agenda_worksheet_id(
                 graph_client, drive.id, next_meeting_agenda_excel_item_id
             )
             print(f"Updating Agenda worksheet: {agenda_worksheet_id}")
             for group_id in Constants.GROUP_IDS:
-                plan = PlannerHelper.get_plan_by_name(
-                    graph_client, group_id, self._next_tuesday_month[:3].lower()
-                )
+                plan = PlannerHelper.get_plan_by_name(graph_client, group_id, self._next_tuesday_month[:3].lower())
                 if plan is None:
                     print(f"No matching plan found next week in group {group_id}")
                     continue
-                bucket = PlannerHelper.get_bucket_by_name(
-                    graph_client, plan.id, self._next_tuesday_date
-                )
+                bucket = PlannerHelper.get_bucket_by_name(graph_client, plan.id, self._next_tuesday_date)
                 if bucket is None:
                     print(f"No matching bucket found for next week in plan {plan.id}")
                     exit(1)
@@ -370,22 +332,14 @@ class AgendaCreator:
                 for task in tasks.value:
                     assigned_to_user = self.get_assigned_to_user(graph_client, task)
                     if assigned_to_user is not None:
-                        print(
-                            f"{task.title}, due {task.due_date_time} is assigned to {assigned_to_user.display_name}"
-                        )
-                        meeting_assignments[
-                            task.title.strip()
-                        ] = assigned_to_user.display_name
+                        print(f"{task.title}, due {task.due_date_time} is assigned to {assigned_to_user.display_name}")
+                        meeting_assignments[task.title.strip()] = assigned_to_user.display_name
                 meeting_assignments["Meeting Day"] = "Tuesday"
                 meeting_assignments["Meeting Date"] = self._next_tuesday_date_us
                 range_assignments: RangeAssignments = (
-                    RangeAssignments()
-                    if not self._is_next_meeting_reverse
-                    else RangeAssignmentsReverse()
+                    RangeAssignments() if not self._is_next_meeting_reverse else RangeAssignmentsReverse()
                 )
-                range_assignments_map: dict = range_assignments.populate_values(
-                    meeting_assignments
-                )
+                range_assignments_map: dict = range_assignments.populate_values(meeting_assignments)
                 print(range_assignments_map)
                 self._populate_agenda_worksheet(
                     drive.id,
@@ -393,9 +347,7 @@ class AgendaCreator:
                     agenda_worksheet_id,
                     range_assignments_map,
                 )
-                print(
-                    f"Successfully created the agenda for the next meeting on {self._next_tuesday_date}"
-                )
+                print(f"Successfully created the agenda for the next meeting on {self._next_tuesday_date}")
                 return
         except RuntimeError as e:
             print(f"Error creating agenda. {e}")

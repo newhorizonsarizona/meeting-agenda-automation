@@ -11,9 +11,7 @@ from agenda_creator import AgendaCreator
 
 def main(mytimer: func.TimerRequest) -> None:
     """Timer trigger for the weekly meeting agenda"""
-    utc_timestamp = (
-        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
-    )
+    utc_timestamp = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
 
     if mytimer.past_due:
         logging.info("The timer is past due!")

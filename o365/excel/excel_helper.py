@@ -9,9 +9,7 @@ class ExcelHelper:
 
     @staticmethod
     # GET /drives/{drive-id}/workbook/worksheets
-    async def get_worksheets(
-        graph_client: GraphServiceClient, drive_id: str, item_id: str
-    ):
+    async def get_worksheets(graph_client: GraphServiceClient, drive_id: str, item_id: str):
         """Gets all the worksheetsq"""
         try:
             print(f"Getting all worksheets for workbook in excel file {item_id}")
@@ -98,11 +96,7 @@ class ExcelHelper:
         while retry_count < 3:
             try:
                 print(f"Getting the cell value: {row}x{column}")
-                cell = asyncio.run(
-                    ExcelHelper.get_cell(
-                        graph_client, drive_id, item_id, worksheet_id, row, column
-                    )
-                )
+                cell = asyncio.run(ExcelHelper.get_cell(graph_client, drive_id, item_id, worksheet_id, row, column))
                 if cell and cell.values:
                     return cell.values
             except RuntimeError as e:

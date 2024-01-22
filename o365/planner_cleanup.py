@@ -13,9 +13,7 @@ class PlannerCleanup:
         for group_id in group_ids:
             for plan_name in plan_names:
                 print(f"Deleting plan with name {plan_name}")
-                PlannerHelper.delete_plan_by_name(
-                    graph_client, group_id, plan_name, etag
-                )
+                PlannerHelper.delete_plan_by_name(graph_client, group_id, plan_name, etag)
 
 
 PlannerCleanup().cleanup('W/"JzEtUGxhbiAgQEBAQEBAQEBAQEBAQEBAXCc="')
