@@ -1,5 +1,6 @@
 import asyncio
 import time
+from loguru import logger
 from msgraph import GraphServiceClient
 from kiota_abstractions.api_error import APIError
 
@@ -12,7 +13,7 @@ class ExcelHelper:
     async def get_worksheets(graph_client: GraphServiceClient, drive_id: str, item_id: str):
         """Gets all the worksheetsq"""
         try:
-            print(f"Getting all worksheets for workbook in excel file {item_id}")
+            logger.debug(f"Getting all worksheets for workbook in excel file {item_id}")
             worksheets = (
                 await graph_client.drives.by_drive_id(drive_id)
                 .items.by_drive_item_id(item_id)
@@ -20,7 +21,7 @@ class ExcelHelper:
             )
             return worksheets
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting worksheets: {e.error.message}")
         return None
 
     @staticmethod
@@ -33,12 +34,12 @@ class ExcelHelper:
         range_address: str,
     ):
         """Gets the range value of specified range address"""
-        print(
+        logger.debug(
             f"Gets the range value in excel file {item_id} for worksheet {worksheet_id} of specified range address {range_address}"
         )
         try:
             # range_address_query = "{" + range_address + "}"
-            print(f"Getting range {range_address}")
+            logger.debug(f"Getting range {range_address}")
             range_value = (
                 await graph_client.drives.by_drive_id(drive_id)
                 .items.by_drive_item_id(item_id)
@@ -46,10 +47,10 @@ class ExcelHelper:
                 .range_with_address(range_address)
                 .get()
             )
-            print(range_value)
+            logger.debug(range_value)
             return range_value
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting range address {range_address}: {e.error.message}")
         return None
 
     @staticmethod
@@ -63,11 +64,11 @@ class ExcelHelper:
         column: int,
     ):
         """Gets the range value of specified range address"""
-        print(
+        logger.debug(
             f"Gets the cell in excel file {item_id} for worksheet {worksheet_id} of specified cell row={row}, column={column}"
         )
         try:
-            print(f"Getting cell {row}x{column}")
+            logger.debug(f"Getting cell {row}x{column}")
             cell = (
                 await graph_client.drives.by_drive_id(drive_id)
                 .items.by_drive_item_id(item_id)
@@ -75,10 +76,10 @@ class ExcelHelper:
                 .cell_with_row_with_column(column, row)
                 .get()
             )
-            print(cell)
+            logger.debug(cell)
             return cell
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting cell {row}:{column}. {e.error.message}")
         return None
 
     @staticmethod
@@ -95,7 +96,7 @@ class ExcelHelper:
         cell_value = None
         while retry_count < 3:
             try:
-                print(f"Getting the cell value: {row}x{column}")
+                logger.debug(f"Getting the cell value: {row}x{column}")
                 cell = asyncio.run(ExcelHelper.get_cell(graph_client, drive_id, item_id, worksheet_id, row, column))
                 if cell and cell.values:
                     return cell.values

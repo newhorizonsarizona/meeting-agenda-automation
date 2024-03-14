@@ -1,5 +1,6 @@
 import os
 import httpx
+from loguru import logger
 from msal import ConfidentialClientApplication
 from azure.identity.aio import ClientSecretCredential
 from msgraph import GraphServiceClient, GraphRequestAdapter
@@ -54,7 +55,7 @@ class AuthHelper:
             if token.get("access_token") is not None:
                 return token["access_token"]
             else:
-                print(token)
+                logger.error(f"Invalid token: {token}")
 
     @staticmethod
     def client_service_credential():

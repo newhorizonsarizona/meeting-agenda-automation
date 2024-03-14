@@ -25,9 +25,6 @@ python cli.py
 
 ## Test, package and publish function to Azure 
 - To test, package and publish function to Azure, run commands
-```
-make test
+``emake test
 make package 
-make login
-make publish
-```
+make logi```

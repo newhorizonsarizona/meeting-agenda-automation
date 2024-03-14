@@ -4,3 +4,4 @@ cred.sh
 *.venv
 *local.settings.json
 weeklymeetingagenda41e718/site/wwwroot/host.json
+o365/auth/__pycache__/auth_helper.cpython-311.pyc

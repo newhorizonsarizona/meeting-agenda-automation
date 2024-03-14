@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-from logging import error
+from loguru import logger
 import time
 
 from msgraph import GraphServiceClient
@@ -33,7 +33,7 @@ class TeamsHelper:
     async def get_channels(graph_client: GraphServiceClient, team_id: str, display_name: str = None):
         """Gets all the channels for a team/group"""
         try:
-            print(f"Getting all the channels for {team_id}")
+            logger.debug(f"Getting all the channels for {team_id}")
             request_configuration = None
             if display_name is not None:
                 query_params = ChannelsRequestBuilder.ChannelsRequestBuilderGetQueryParameters(
@@ -49,7 +49,7 @@ class TeamsHelper:
             )
             return channels
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting channels: {e.error.message}")
         return None
 
     @staticmethod
@@ -163,19 +163,19 @@ class TeamsHelper:
         meeting_message: WeeklyMeetingMessage,
     ):
         """Post a message to a teams channel and add an attachment"""
-        print(f"Posting a message for team {team_id} to channel {channel_id}")
+        logger.debug(f"Posting a message for team {team_id} to channel {channel_id}")
         try:
             chat_message = TeamsHelper.generate_chat_message(meeting_message)
-            print("Posting message")
+            logger.debug("Posting message")
             send_message_result = (
                 await graph_client.teams.by_team_id(team_id)
                 .channels.by_channel_id(channel_id)
                 .messages.post(chat_message)
             )
-            print(send_message_result)
+            logger.debug(send_message_result)
             return send_message_result
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error posting message: {e.error.message}")
         return None
 
     @staticmethod
@@ -186,9 +186,9 @@ class TeamsHelper:
         channel_item = None
         while retry_count < 5:
             try:
-                print(f"Getting the channel {channel_name} for team: {team_id}")
+                logger.debug(f"Getting the channel {channel_name} for team: {team_id}")
                 channels = asyncio.run(TeamsHelper.get_channels(graph_client, team_id, channel_name))
-                print(channels)
+                logger.debug(channels)
                 if channels and channels.value:
                     if len(channels.value) > 0:
                         return channels.value[0]
@@ -198,7 +198,7 @@ class TeamsHelper:
                         retry_count = retry_count + 1
                         time.sleep(10)
             except Exception as ex:
-                print(ex)
+                logger.error(f"Error getting teams channel {channel_name}. {ex}")
 
         return channel_item
 
@@ -210,7 +210,7 @@ class TeamsHelper:
         message_item = None
         while retry_count < 5:
             try:
-                print(f"Posting message to channel {channel_id} for team: {team_id}")
+                logger.debug(f"Posting message to channel {channel_id} for team: {team_id}")
                 message_response = asyncio.run(
                     TeamsHelper.post_message(graph_client, team_id, channel_id, meeting_message)
                 )

@@ -1,5 +1,5 @@
 import asyncio
-from logging import error
+from loguru import logger
 import time
 from msgraph import GraphServiceClient
 from msgraph.generated.planner.plans.item.planner_plan_item_request_builder import (
@@ -16,11 +16,11 @@ class PlannerHelper:
     async def get_all_plans(graph_client: GraphServiceClient, group_id: str):
         """Gets all the planner tasks"""
         try:
-            print("Getting all plans")
+            logger.debug("Getting all plans")
             plans = await graph_client.groups.by_group_id(group_id).planner.plans.get()
             return plans
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting all plans: {e.error.message}")
 
         return None
 
@@ -28,31 +28,31 @@ class PlannerHelper:
     # GET /planner/plans/{plan-id}/buckets
     async def get_all_buckets(graph_client: GraphServiceClient, plan_id: str):
         """Gets all the buckets in the plan"""
-        print("Getting all buckets in the plan")
+        logger.debug("Getting all buckets in the plan")
         try:
             buckets = await graph_client.planner.plans.by_planner_plan_id(plan_id).buckets.get()
             return buckets
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting all buckets: {e.error.message}")
         return None
 
     @staticmethod
     # GET planner/buckets/{bucket-id}/tasks
     async def get_tasks_in_bucket(graph_client: GraphServiceClient, bucket_id: str):
         """Gets all the planner tasks in the bucket"""
-        print("Getting all tasks in the bucket")
+        logger.debug("Getting all tasks in the bucket")
         try:
             tasks = await graph_client.planner.buckets.by_planner_bucket_id(bucket_id).tasks.get()
             return tasks
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error getting all tasks in bucket: {e.error.message}")
         return None
 
     @staticmethod
     # GET /planner/plans/{plan-id}
     async def delete_plan(graph_client: GraphServiceClient, plan_id: str, etag: str = None):
         """Delete the plan with the specified id"""
-        print(f"Deleting the plan with id {plan_id}")
+        logger.debug(f"Deleting the plan with id {plan_id}")
         try:
             request_configuration = (
                 PlannerPlanItemRequestBuilder.PlannerPlanItemRequestBuilderDeleteRequestConfiguration()
@@ -65,7 +65,7 @@ class PlannerHelper:
             )
 
         except APIError as e:
-            print(f"Error: {e.error.message}")
+            logger.error(f"Error deleting plan: {e.error.message}")
         return None
 
     @staticmethod
@@ -75,12 +75,12 @@ class PlannerHelper:
         plan_by_name = None
         while retry_count < 3:
             try:
-                print(f"Getting the plan in group: {group_id} with name {plan_name}")
+                logger.debug(f"Getting the plan in group: {group_id} with name {plan_name}")
                 plans = asyncio.run(PlannerHelper.get_all_plans(graph_client, group_id))
                 if plans and plans.value:
                     for plan in plans.value:
                         if plan_name.lower() in plan.title.lower():
-                            print(f"Found plan {plan}")
+                            logger.debug(f"Found plan {plan}")
                             return plan
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
@@ -88,7 +88,7 @@ class PlannerHelper:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
-                        print(e)
+                        logger.error(f"Unexpected error getting plan {plan_name}. {e}")
                         break  # do something here, like log the error
         return plan_by_name
 
@@ -99,12 +99,12 @@ class PlannerHelper:
         bucket_by_name = None
         while retry_count < 5:
             try:
-                print(f"Getting the bucket in plan: {plan_id}")
+                logger.debug(f"Getting the bucket in plan: {plan_id}")
                 buckets = asyncio.run(PlannerHelper.get_all_buckets(graph_client, plan_id))
                 if buckets and buckets.value:
                     for bucket in buckets.value:
                         if bucket_name in bucket.name:
-                            print(f"Found bucket {bucket}")
+                            logger.debug(f"Found bucket {bucket}")
                             return bucket
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
@@ -112,7 +112,7 @@ class PlannerHelper:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
-                        print(e)
+                        logger.error(f"Unexpected error getting bucket {bucket_name}. {e}")
                         break  # do something here, like log the error
         return bucket_by_name
 
@@ -123,7 +123,7 @@ class PlannerHelper:
         tasks_in_bucket = None
         while retry_count < 5:
             try:
-                print(f"Getting the tasks in bucket: {bucket_id}")
+                logger.debug(f"Getting the tasks in bucket: {bucket_id}")
                 tasks = asyncio.run(PlannerHelper.get_tasks_in_bucket(graph_client, bucket_id))
                 if tasks and tasks.value:
                     return tasks
@@ -133,7 +133,7 @@ class PlannerHelper:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
-                        print(e)
+                        logger.error(f"Unexpected error getting tasks from bucket. {e}")
                         break  # do something here, like log the error
         return tasks_in_bucket
 
@@ -149,10 +149,10 @@ class PlannerHelper:
         plan_by_name = None
         while retry_count < 3:
             try:
-                print(f"Getting the plan to delete with name {plan_name}")
+                logger.debug(f"Getting the plan to delete with name {plan_name}")
                 plan = PlannerHelper.get_plan_by_name(graph_client, group_id, plan_name)
                 if plan is None:
-                    print(f"No matching plan found with name {plan_name} in group {group_id}")
+                    logger.debug(f"No matching plan found with name {plan_name} in group {group_id}")
                     continue
                 asyncio.run(PlannerHelper.delete_plan(graph_client, plan.id, etag))
             except RuntimeError as e:
@@ -161,6 +161,6 @@ class PlannerHelper:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
-                        print(e)
+                        logger.error(f"Unexpected error deleting plan {plan_name}. {e}")
                         break  # do something here, like log the error
         return True

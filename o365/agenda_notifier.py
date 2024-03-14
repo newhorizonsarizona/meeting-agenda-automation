@@ -1,16 +1,12 @@
 import json
-import time
+from loguru import logger
 from o365.agenda_creator import AgendaCreator
 from o365.auth.auth_helper import AuthHelper
-from o365.excel.excel_helper import ExcelHelper
 from o365.excel.range_assignments import RangeAssignments
 from o365.excel.range_assignments_reverse import RangeAssignmentsReverse
-from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 from o365.teams.weekly_meeting_message import WeeklyMeetingMessage
-from o365.user.user_helper import UserHelper
 from o365.util.constants import Constants
-from o365.planner.planner_helper import PlannerHelper
 from o365.teams.teams_helper import TeamsHelper
 
 
@@ -25,58 +21,58 @@ class AgendaNotifier(AgendaCreator):
     def _get_range_values(self, drive_id: str, item_id: str, worksheet_id: str, range_address: str):
         """Search the the drive id for matching item"""
         try:
-            print(f"Getting the range values for item matching {item_id} for range address {range_address}")
+            logger.debug(f"Getting the range values for item matching {item_id} for range address {range_address}")
             graph_helper: GraphHelper = GraphHelper()
             range_values = graph_helper.get_request(
                 f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')?$select=values",
                 {"Content-Type": "application/json"},
             )
             if range_values and range_values is not None:
-                print(range_values["values"])
+                logger.debug(range_values["values"])
                 return range_values["values"]
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Error gettng range values: {e}")
         return None
 
     # GET /users?$filter=startswith(displayName,'a')&$orderby=displayName&$count=true&$top=1
     def _get_user_by_display_name(self, display_name: str):
         """Get the users with display name that matches"""
         try:
-            print(f"Getting the users that matches the name {display_name}")
+            logger.debug(f"Getting the users that matches the name {display_name}")
             graph_helper: GraphHelper = GraphHelper()
             users = graph_helper.get_request(
                 f"/users?$filter=startswith(displayName,'{display_name.replace(' ','%20')}')&$count=true&$top=1&$select=id,displayName",
                 {"Content-Type": "application/json"},
             )
             if users and users["value"] is not None:
-                print(users["value"])
+                logger.debug(users["value"])
                 return users["value"]
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Error getting user display name: {e}")
         return None
 
     # GET /teams/{team-id}/channels?$filter=startswith(displayName,'a')&$select=id,displayName
     def _get_teams_channel_by_display_name(self, team_id: str, display_name: str):
         """Get the users with display name that matches"""
         try:
-            print(f"Getting the teams channel that matches the {display_name}")
+            logger.debug(f"Getting the teams channel that matches the {display_name}")
             graph_helper: GraphHelper = GraphHelper()
             channels = graph_helper.get_request(
                 f"/teams/{team_id}/channels?$filter=startswith(displayName,'{display_name.replace(' ','%20')}')&$select=id,displayName",
                 {"Content-Type": "application/json"},
             )
             if channels and channels["value"] is not None:
-                print(channels["value"])
+                logger.debug(channels["value"])
                 return channels["value"]
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Error getting channel display name: {e}")
         return None
 
     # POST /teams/{team-id}/channels/{channel-id}/messages
     def _post_message_to_channel(self, team_id: str, channel_id: str, chat_message: dict):
         """Post chat message to specified channel in team"""
         try:
-            print(f"Posting message to teams channel that matches the id {channel_id}")
+            logger.debug(f"Posting message to teams channel that matches the id {channel_id}")
             graph_helper: GraphHelper = GraphHelper(True)
             messages = graph_helper.post_request(
                 f"/teams/{team_id}/channels/{channel_id}/messages",
@@ -84,40 +80,40 @@ class AgendaNotifier(AgendaCreator):
                 {"Content-Type": "application/json"},
             )
             if messages and messages["id"] is not None:
-                print(messages["id"])
+                logger.debug(messages["id"])
                 return messages["id"]
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Error posting message to teams: {e}")
         return None
 
     def send(self):
         """Send the agenda notification on teams"""
-        print("Preparing agenda notification")
+        logger.info("Preparing agenda notification")
         try:
             graph_client = AuthHelper.graph_service_client_with_adapter()
             group_id = Constants.GROUP_IDS[0]
             drive = self.get_drive(graph_client, group_id)
-            print(f"Drive id: {drive.id}")
+            logger.debug(f"Drive id: {drive.id}")
             meeting_docs_folder = self._next_tuesday_meeting_docs
             wmc_drive_item = self.search_item_with_name(drive.id, "Weekly Meeting Channel")
             wmc_drive_item_id = wmc_drive_item["id"]
-            print(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
+            logger.debug(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
 
             meeting_docs_folder_item = self._do_next_meeting_docs_item_id(
                 graph_client, drive.id, wmc_drive_item_id, meeting_docs_folder, False
             )
             meeting_docs_folder_item_id = meeting_docs_folder_item["id"]
-            print(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
+            logger.debug(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
 
             next_meeting_agenda_excel_item = self._do_next_meeting_agenda_excel_item_id(
                 graph_client, drive.id, None, meeting_docs_folder_item_id, False
             )
             next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
-            print(f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}")
+            logger.debug(f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}")
             agenda_worksheet_id = self._get_agenda_worksheet_id(
                 graph_client, drive.id, next_meeting_agenda_excel_item_id
             )
-            print(f"Getting functionaries from Agenda worksheet: {agenda_worksheet_id}")
+            logger.debug(f"Getting functionaries from Agenda worksheet: {agenda_worksheet_id}")
 
             speakers: list = []
             topics_master = None
@@ -149,8 +145,10 @@ class AgendaNotifier(AgendaCreator):
                                     topics_master = topics_master_user[0]
                     range_row += 1
 
-            print(f"Successfully fetched assignments from the agenda for the next meeting on {self._next_tuesday_date}")
-            print(f"Speakers: {speakers}, Topics Master: {topics_master}")
+            logger.info(
+                f"Successfully fetched assignments from the agenda for the next meeting on {self._next_tuesday_date}"
+            )
+            logger.debug(f"Speakers: {speakers}, Topics Master: {topics_master}")
             meeting_message: WeeklyMeetingMessage = WeeklyMeetingMessage(
                 self._next_tuesday_date,
                 "Tuesday",
@@ -159,19 +157,18 @@ class AgendaNotifier(AgendaCreator):
                 meeting_docs_folder_item,
                 next_meeting_agenda_excel_item,
             )
-            teams_helper: TeamsHelper = TeamsHelper()
             channel = self._get_teams_channel_by_display_name(group_id, "Weekly Meeting Channel")
             chat_message = TeamsHelper.generate_chat_message_dict(meeting_message)
-            print(chat_message)
+            logger.debug(chat_message)
             if channel is not None and chat_message is not None:
                 message = self._post_message_to_channel(group_id, channel[0]["id"], chat_message)
                 if message is not None:
-                    print(f"Successfully posted message to the teams, 'Weekly Meeting Channel' channel.")
+                    logger.info(f"Successfully posted message to the teams, 'Weekly Meeting Channel' channel.")
             return
         except RuntimeError as e:
-            print(f"Error sending agenda notification. {e}")
+            logger.critical(f"Unexpected error sending agenda notification. {e}")
 
-        print("No matching plan or buckets were found for next the meeting next week")
+        logger.error("No matching plan or buckets were found for next the meeting next week")
         exit(1)
 
     def create_and_send(self):
