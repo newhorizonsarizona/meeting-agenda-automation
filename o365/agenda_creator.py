@@ -108,16 +108,25 @@ class AgendaCreator:
         return folder_item_id
 
     # GET /drives/{drive-id}/root/search(q=\'FolderName\')?$filter=item ne null&$select=name,id,webUrl'
-    def search_item_with_name(self, drive_id: str, item_name: str):
+    def search_item_with_name(self, drive_id: str, item_name: str, parent_sub_path: str = None):
         """Search the the drive id for matching item"""
         try:
             logger.debug(f"Searching the item matching {item_name} in drive {drive_id}")
             graph_helper: GraphHelper = GraphHelper()
+            if parent_sub_path is not None:
+                item = graph_helper.get_request(
+                    f"/drives/{drive_id}/root:/{parent_sub_path}/{item_name}?$select=name,id,webUrl",
+                    {"Content-Type": "application/json"},
+                )
+                if item and item is not None:
+                    logger.debug(f"Found {item}")
+                    return item
             item = graph_helper.get_request(
                 f"/drives/{drive_id}/root/search(q='{item_name}')?$select=name,id,webUrl",
                 {"Content-Type": "application/json"},
             )
             if item and item["value"] is not None:
+                logger.debug(f"Found item vaue {len(item['value'])}")
                 for value in item["value"]:
                     if value["name"] == item_name:
                         logger.debug(f"Found item {value['name']}")
@@ -289,7 +298,7 @@ class AgendaCreator:
             drive = self.get_drive(graph_client, Constants.GROUP_IDS[0])
             logger.debug(f"Drive id: {drive.id}")
             meeting_docs_folder = self._next_tuesday_meeting_docs
-            wmc_drive_item = self.search_item_with_name(drive.id, "Weekly Meeting Channel")
+            wmc_drive_item = self.search_item_with_name(drive.id, "", "Weekly Meeting Channel")
             wmc_drive_item_id = wmc_drive_item["id"]
             logger.debug(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
 
@@ -298,7 +307,7 @@ class AgendaCreator:
             )["id"]
             logger.debug(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
 
-            ma_agenda_template_item = self.search_item_with_name(drive.id, self._agenda_template_excel)
+            ma_agenda_template_item = self.search_item_with_name(drive.id, self._agenda_template_excel, "Meeting Automation")
             if ma_agenda_template_item is not None:
                 ma_agenda_template_item_id = ma_agenda_template_item["id"]
             logger.debug(f"NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}")

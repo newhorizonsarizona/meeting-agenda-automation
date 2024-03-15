@@ -33,7 +33,7 @@ class GraphHelper:
         self.headers.update(headers)
         graph_response = httpx.get(url=request_url, headers=self.headers, timeout=self.timeout)
 
-        if graph_response.status_code in [200,201,202]:
+        if graph_response.status_code in [200, 201, 202]:
             # Print the results in a JSON format
             # print(graph_response.json())
             return graph_response.json()
@@ -46,7 +46,7 @@ class GraphHelper:
         logger.debug(f"Sending POST request to {request_url}")
         graph_response = httpx.post(url=request_url, data=data, headers=self.headers, timeout=self.timeout)
 
-        if graph_response.status_code in [200,201,202]:
+        if graph_response.status_code in [200, 201, 202]:
             # Print the results in a JSON format
             # print(graph_response.json())
             return graph_response.json()
@@ -67,7 +67,7 @@ class GraphHelper:
         self.headers.update(headers)
         graph_response = requests.patch(request_url, data=data, headers=self.headers, timeout=self.timeout)
 
-        if graph_response.status_code in [200,201,202]:
+        if graph_response.status_code in [200, 201, 202]:
             # Print the results in a JSON format
             # print(graph_response.json())
             return graph_response.json()

@@ -45,7 +45,7 @@ async def create_agenda(name: str = "NHTM"):
                 msg = "Creation of the agenda was successful!"
             if status == "Failure":
                 msg = "Creation of the agenda failed!"
-        if status == "Success" or status == "Failure":
+        if status in ["Success", "Failure"]:
             break
         time.sleep(10)  # Send update every 10 seconds
         yield f"data: {msg}\n\n"

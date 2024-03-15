@@ -95,7 +95,7 @@ class AgendaNotifier(AgendaCreator):
             drive = self.get_drive(graph_client, group_id)
             logger.debug(f"Drive id: {drive.id}")
             meeting_docs_folder = self._next_tuesday_meeting_docs
-            wmc_drive_item = self.search_item_with_name(drive.id, "Weekly Meeting Channel")
+            wmc_drive_item = self.search_item_with_name(drive.id, "", "Weekly Meeting Channel")
             wmc_drive_item_id = wmc_drive_item["id"]
             logger.debug(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
 
