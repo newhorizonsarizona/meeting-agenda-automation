@@ -1,6 +1,6 @@
 import asyncio
-from loguru import logger
 import time
+from loguru import logger
 from msgraph import GraphServiceClient
 from msgraph.generated.planner.plans.item.planner_plan_item_request_builder import (
     PlannerPlanItemRequestBuilder,

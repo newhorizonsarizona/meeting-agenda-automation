@@ -4,6 +4,7 @@ from o365.agenda_creator import AgendaCreator
 from o365.auth.auth_helper import AuthHelper
 from o365.excel.range_assignments import RangeAssignments
 from o365.excel.range_assignments_reverse import RangeAssignmentsReverse
+from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 from o365.teams.weekly_meeting_message import WeeklyMeetingMessage
 from o365.util.constants import Constants
@@ -30,7 +31,7 @@ class AgendaNotifier(AgendaCreator):
             if range_values and range_values is not None:
                 logger.debug(range_values["values"])
                 return range_values["values"]
-        except Exception as e:
+        except AgendaException as e:
             logger.error(f"Error gettng range values: {e}")
         return None
 
@@ -47,7 +48,7 @@ class AgendaNotifier(AgendaCreator):
             if users and users["value"] is not None:
                 logger.debug(users["value"])
                 return users["value"]
-        except Exception as e:
+        except AgendaException as e:
             logger.error(f"Error getting user display name: {e}")
         return None
 
@@ -64,7 +65,7 @@ class AgendaNotifier(AgendaCreator):
             if channels and channels["value"] is not None:
                 logger.debug(channels["value"])
                 return channels["value"]
-        except Exception as e:
+        except AgendaException as e:
             logger.error(f"Error getting channel display name: {e}")
         return None
 
@@ -82,7 +83,7 @@ class AgendaNotifier(AgendaCreator):
             if messages and messages["id"] is not None:
                 logger.debug(messages["id"])
                 return messages["id"]
-        except Exception as e:
+        except AgendaException as e:
             logger.error(f"Error posting message to teams: {e}")
         return None
 

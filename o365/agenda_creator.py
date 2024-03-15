@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import json
 import time
+import sys
 from loguru import logger
 from o365.util.constants import Constants
 from o365.util.meeting_util import MeetingUtil
@@ -131,7 +132,7 @@ class AgendaCreator:
                     if value["name"] == item_name:
                         logger.debug(f"Found item {value['name']}")
                         return value
-        except Exception as e:
+        except AgendaException as e:
             logger.error(f"Error searching drive item {item_name}. {e}")
         return None
 
@@ -189,9 +190,7 @@ class AgendaCreator:
             if meeting_docs_folder_item is not None:
                 return meeting_docs_folder_item
             if is_create_not_exist and retry == 0:
-                meeting_docs_folder_item_id = self._create_weekly_meeting_docs(
-                    graph_client, drive_id, wmc_drive_item_id, meeting_docs_folder
-                )
+                self._create_weekly_meeting_docs(graph_client, drive_id, wmc_drive_item_id, meeting_docs_folder)
             retry = retry + 1
             if retry < 30:
                 time.sleep(30)
@@ -215,7 +214,7 @@ class AgendaCreator:
             if next_meeting_agenda_excel_item is not None:
                 return next_meeting_agenda_excel_item
             if is_copy_not_exist and retry == 0:
-                next_meeting_agenda_excel_item_id = self._copy_agenda_to_meeting_folder(
+                self._copy_agenda_to_meeting_folder(
                     graph_client,
                     drive_id,
                     ma_agenda_template_item_id,
@@ -307,7 +306,9 @@ class AgendaCreator:
             )["id"]
             logger.debug(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
 
-            ma_agenda_template_item = self.search_item_with_name(drive.id, self._agenda_template_excel, "Meeting Automation")
+            ma_agenda_template_item = self.search_item_with_name(
+                drive.id, self._agenda_template_excel, "Meeting Automation"
+            )
             if ma_agenda_template_item is not None:
                 ma_agenda_template_item_id = ma_agenda_template_item["id"]
             logger.debug(f"NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}")
@@ -333,11 +334,11 @@ class AgendaCreator:
                 bucket = PlannerHelper.get_bucket_by_name(graph_client, plan.id, self._next_tuesday_date)
                 if bucket is None:
                     logger.error(f"No matching bucket found for next week in plan {plan.id}")
-                    exit(1)
+                    sys.exit()
                 tasks = PlannerHelper.fetch_tasks_in_bucket(graph_client, bucket.id)
                 if tasks is None:
                     logger.error("No matching tasks found for next the meeting next week")
-                    exit(1)
+                    sys.exit()
                 meeting_assignments: dict = {}
                 for task in tasks.value:
                     assigned_to_user = self.get_assigned_to_user(graph_client, task)

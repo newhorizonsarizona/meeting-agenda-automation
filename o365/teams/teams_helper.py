@@ -18,7 +18,6 @@ from msgraph.generated.models.chat_message_from_identity_set import (
 from msgraph.generated.models.chat_message_mentioned_identity_set import (
     ChatMessageMentionedIdentitySet,
 )
-from msgraph.generated.models.share_point_identity_set import SharePointIdentitySet
 from msgraph.generated.models.identity import Identity
 from kiota_abstractions.api_error import APIError
 

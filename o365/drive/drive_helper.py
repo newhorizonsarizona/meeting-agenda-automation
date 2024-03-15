@@ -12,6 +12,7 @@ from msgraph.generated.models.item_reference import ItemReference
 from kiota_abstractions.api_error import APIError
 from urllib.parse import quote
 
+
 class DriveHelper:
     """This is a helper for Onedrive"""
 

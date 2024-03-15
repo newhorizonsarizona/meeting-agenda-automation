@@ -37,8 +37,8 @@ class GraphHelper:
             # Print the results in a JSON format
             # print(graph_response.json())
             return graph_response.json()
-        else:
-            raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
+
+        raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
 
     def _post(self, request_url: str, data: str, headers: dict = {}):
         """Make a POST request to the provided url, passing the access token in a header"""
