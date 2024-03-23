@@ -18,6 +18,7 @@ from msgraph.generated.models.chat_message_from_identity_set import (
 from msgraph.generated.models.chat_message_mentioned_identity_set import (
     ChatMessageMentionedIdentitySet,
 )
+from msgraph.generated.teams.item.channels.item.messages.messages_request_builder import MessagesRequestBuilder
 from msgraph.generated.models.identity import Identity
 from kiota_abstractions.api_error import APIError
 
@@ -154,7 +155,7 @@ class TeamsHelper:
         return chat_message
 
     @staticmethod
-    # GET /teams/{team-id}/channels/{channel-id}/messages
+    # POST /teams/{team-id}/channels/{channel-id}/messages
     async def post_message(
         graph_client: GraphServiceClient,
         team_id: str,
@@ -175,6 +176,29 @@ class TeamsHelper:
             return send_message_result
         except APIError as e:
             logger.error(f"Error posting message: {e.error.message}")
+        return None
+
+    @staticmethod
+    # GET /teams/{team-id}/channels/{channel-id}/messages
+    async def list_messages(graph_client, team_id, channel_id):
+        """Get the list of message in a teams channel"""
+        try:
+            logger.debug(f"List last 10 messages in channel {channel_id} for team: {team_id}")
+            query_params = MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters(
+                top=10
+            )
+            
+            request_configuration = MessagesRequestBuilder.MessagesRequestBuilderGetRequestConfiguration(
+                query_parameters=query_params,
+            )
+            messages_list = (
+                await graph_client.teams.by_team_id(team_id)
+                .channels.by_channel_id(channel_id)
+                .messages.get(request_configuration=request_configuration)
+            )
+            return messages_list
+        except APIError as e:
+            logger.error(f"Error getting list of message: {e.error.message}")
         return None
 
     @staticmethod
@@ -222,3 +246,25 @@ class TeamsHelper:
                         time.sleep(10)
 
         return message_item
+
+    @staticmethod
+    # GET /teams/{team-id}/channels/{channel-id}/messages
+    def find_message_in_channel(graph_client, team_id, channel_id, meeting_message: WeeklyMeetingMessage):
+        """Find the message in a teams channel"""
+        retry_count = 0
+        message_in_channel = None
+        while retry_count < 5:
+            try:
+                logger.debug(f"Finding message in channel {channel_id} for team: {team_id}")
+                messages_list = asyncio.run(TeamsHelper.list_messages(graph_client, team_id, channel_id))
+                if messages_list and messages_list.value:
+                    for message in messages_list.value:
+                        if meeting_message.subject == message.subject:
+                            return message
+            except RuntimeError as e:
+                if "Event loop is closed" in str(e):
+                    if retry_count < 5:
+                        retry_count = retry_count + 1
+                        time.sleep(10)
+
+        return message_in_channel

@@ -87,33 +87,38 @@ class AgendaNotifier(AgendaCreator):
             logger.error(f"Error posting message to teams: {e}")
         return None
 
+    # PATCH /teams/(team-id)/channels/{channel-id}/messages/{message-id}
+    def _update_message_on_channel(self, team_id: str, channel_id: str, message_id: str, chat_message: dict):
+        """Update chat message on specified channel in team"""
+        try:
+            logger.debug(
+                f"Updating message on teams channel that matches the id {channel_id} and message id {message_id}"
+            )
+            graph_helper: GraphHelper = GraphHelper(True)
+            messages = graph_helper.patch_request(
+                f"/teams/{team_id}/channels/{channel_id}/messages/{message_id}",
+                json.dumps(chat_message, indent=None),
+                {"Content-Type": "application/json"},
+            )
+            if messages and messages["id"] is not None:
+                logger.debug(messages["id"])
+                return messages["id"]
+        except AgendaException as e:
+            logger.error(f"Error updating message on teams: {e}")
+        return None
+
     def send(self):
         """Send the agenda notification on teams"""
         logger.info("Preparing agenda notification")
         try:
-            graph_client = AuthHelper.graph_service_client_with_adapter()
-            group_id = Constants.GROUP_IDS[0]
-            drive = self.get_drive(graph_client, group_id)
+            drive = self.get_drive()
             logger.debug(f"Drive id: {drive.id}")
-            meeting_docs_folder = self._next_tuesday_meeting_docs
-            wmc_drive_item = self.search_item_with_name(drive.id, "", "Weekly Meeting Channel")
-            wmc_drive_item_id = wmc_drive_item["id"]
-            logger.debug(f"Weekly Meeting Channel Drive Item Id: {wmc_drive_item_id}")
-
-            meeting_docs_folder_item = self._do_next_meeting_docs_item_id(
-                graph_client, drive.id, wmc_drive_item_id, meeting_docs_folder, False
-            )
-            meeting_docs_folder_item_id = meeting_docs_folder_item["id"]
-            logger.debug(f"Meeting Docs folder Item Id: {meeting_docs_folder_item_id}")
-
-            next_meeting_agenda_excel_item = self._do_next_meeting_agenda_excel_item_id(
-                graph_client, drive.id, None, meeting_docs_folder_item_id, False
+            meeting_docs_folder_item = self._get_meeting_docs_folder_item(drive)
+            next_meeting_agenda_excel_item = self._get_next_meeting_agenda_excel_item(
+                drive, meeting_docs_folder_item["id"]
             )
             next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
-            logger.debug(f"Next Tuesday Meeting Agenda Excel Item Id: {next_meeting_agenda_excel_item_id}")
-            agenda_worksheet_id = self._get_agenda_worksheet_id(
-                graph_client, drive.id, next_meeting_agenda_excel_item_id
-            )
+            agenda_worksheet_id = self._get_agenda_worksheet_id(drive.id, next_meeting_agenda_excel_item_id)
             logger.debug(f"Getting functionaries from Agenda worksheet: {agenda_worksheet_id}")
 
             speakers: list = []
@@ -158,13 +163,23 @@ class AgendaNotifier(AgendaCreator):
                 meeting_docs_folder_item,
                 next_meeting_agenda_excel_item,
             )
-            channel = self._get_teams_channel_by_display_name(group_id, "Weekly Meeting Channel")
+            channel = self._get_teams_channel_by_display_name(self._group_id, "Weekly Meeting Channel")
             chat_message = TeamsHelper.generate_chat_message_dict(meeting_message)
             logger.debug(chat_message)
             if channel is not None and chat_message is not None:
-                message = self._post_message_to_channel(group_id, channel[0]["id"], chat_message)
-                if message is not None:
-                    logger.info(f"Successfully posted message to the teams, 'Weekly Meeting Channel' channel.")
+                current_message = TeamsHelper.find_message_in_channel(
+                    self._graph_client, self._group_id, channel[0]["id"], meeting_message
+                )
+                if current_message is not None:
+                    current_message_id = self._update_message_on_channel(
+                        self._group_id, channel[0]["id"], current_message.id, chat_message
+                    )
+                    if current_message_id is not None:
+                        logger.info("Successfully updated message on the teams, 'Weekly Meeting Channel' channel.")
+                        return
+                message_id = self._post_message_to_channel(self._group_id, channel[0]["id"], chat_message)
+                if message_id is not None:
+                    logger.info("Successfully posted message to the teams, 'Weekly Meeting Channel' channel.")
             return
         except RuntimeError as e:
             logger.critical(f"Unexpected error sending agenda notification. {e}")
