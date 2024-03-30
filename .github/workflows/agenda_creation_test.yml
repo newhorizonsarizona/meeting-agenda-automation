@@ -1,0 +1,25 @@
+name: Agenda creation test and debug 
+
+on:
+  schedule:
+    - cron: '0 0 * * 4' # Runs at midnight UTC on Thursday
+
+env:
+  CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Prepare Python
+      run: pip3 install pipenv && pipenv install --dev
+
+    - name: Test Python
+      run: make test-python
+      
+    - name: Debug Agenda Creation
+      run: make debug
