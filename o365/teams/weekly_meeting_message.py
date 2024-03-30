@@ -2,7 +2,8 @@ class WeeklyMeetingMessage:
     """This class is used for storing the weekly meeting message"""
 
     _subject: str = "{meeting_date} - WEEKLY MEETING"
-    _message: str = " \
+    _message: str = (
+        " \
         {meeting_date} WEEKLY MEETING @ Cadence Living in Chandler, 100 W Queen Creek Rd., Chandler, AZ 85248<br/> \
         {attachments}<div>Dear New Horizons Toastmasters Club members,<br/><br/> \
             Please find attached the agenda for the {meeting_day}, {meeting_date} meeting. This is going to be a hybrid meeting. Guests are welcome.<br/> \
@@ -13,6 +14,7 @@ class WeeklyMeetingMessage:
             <b>REMINDERS:</b> Please mute your phones<br/><br/> \
         Best Regards,<br/> \
         NHTM Education Committee<br/></div>"
+    )
     speaker_users: list = []
     topics_master_user = None
     meeting_agenda_item = None

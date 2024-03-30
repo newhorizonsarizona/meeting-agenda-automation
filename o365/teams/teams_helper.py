@@ -184,10 +184,8 @@ class TeamsHelper:
         """Get the list of message in a teams channel"""
         try:
             logger.debug(f"List last 10 messages in channel {channel_id} for team: {team_id}")
-            query_params = MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters(
-                top=10
-            )
-            
+            query_params = MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters(top=10)
+
             request_configuration = MessagesRequestBuilder.MessagesRequestBuilderGetRequestConfiguration(
                 query_parameters=query_params,
             )

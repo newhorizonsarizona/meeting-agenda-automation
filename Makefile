@@ -5,12 +5,12 @@ OUTPUT_PATH ?= ./dist
 .PHONY: test test-* format build
 
 format:
-	black o365 --line-length 120 
-	black agenda_http_trigger --line-length 120 
+	pipenv run black o365 --line-length 120
+	pipenv run black agenda_http_trigger --line-length 120
 
 lint:
-	pylint o365 --fail-under 9.30
-	pylint agenda_http_trigger --fail-under 9.30
+	pipenv run pylint o365 --fail-under 9.30
+	pipenv run pylint agenda_http_trigger --fail-under 9.30
 
 package:
 	python setup.py sdist bdist_wheel
@@ -33,7 +33,7 @@ az-delete: az-login
 test-python: format lint 
 
 debug:
-	pipenv shell "source cred.sh && export LOGURU_LEVEL=DEBUG && python cli.py"
+	pipenv run source cred.sh && export LOGURU_LEVEL=DEBUG && python cli.py
 
 run:
-	pipenv shell "source cred.sh && export LOGURU_LEVEL=INFO && python cli.py"
+	pipenv run source cred.sh && export LOGURU_LEVEL=INFO && python cli.py
