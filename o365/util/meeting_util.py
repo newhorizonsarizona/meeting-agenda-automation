@@ -9,9 +9,9 @@ class MeetingUtil:
 
     _next_tuesday: datetime
 
-    def __init__(self, next_tuesday = None):
+    def __init__(self, next_tuesday=None):
         """Initialize the meeting utils class"""
-        self._next_tuesday = next_tuesday  if next_tuesday is not None else DateUtil().next_tuesday
+        self._next_tuesday = next_tuesday if next_tuesday is not None else DateUtil().next_tuesday
 
     @property
     def next_tuesday_meeting_docs(self):
@@ -26,13 +26,9 @@ class MeetingUtil:
     @property
     def agenda_template_excel(self):
         """Return the name of the meeting agenda template excel file name"""
-        agenda_template_file_name: str = self._next_tuesday.strftime(
-            "NHTM Online Agenda Template %Y.xlsx"
-        )
+        agenda_template_file_name: str = self._next_tuesday.strftime("NHTM Online Agenda Template %Y.xlsx")
         if self.is_next_meeting_reverse:
-            agenda_template_file_name = self._next_tuesday.strftime(
-                "NHTM Online Agenda Reverse Template %Y.xlsx"
-            )
+            agenda_template_file_name = self._next_tuesday.strftime("NHTM Online Agenda Reverse Template %Y.xlsx")
         return agenda_template_file_name
 
     @property

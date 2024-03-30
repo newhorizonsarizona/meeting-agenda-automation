@@ -9,6 +9,7 @@ msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
 azure-functions = "*"
+loguru = "*"
 
 [dev-packages]
 requests = "*"
@@ -16,6 +17,9 @@ msal = "*"
 httpx = "*"
 msgraph-sdk = "*"
 azure-functions = "*"
+black = "*"
+pylint = "*"
+pyinstaller = "*"
 
 [requires]
 python_version = "3.11"

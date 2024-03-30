@@ -1,5 +1,6 @@
 from o365.excel.range_assignments import RangeAssignments
 
+
 class RangeAssignmentsReverse(RangeAssignments):
     """This class is used for storing the reverse meeting range assignments"""
 

@@ -1,5 +1,6 @@
 import datetime
 
+
 class DateUtil:
     """This is a utility class for date functions"""
 
@@ -15,9 +16,7 @@ class DateUtil:
     @property
     def next_tuesday(self):
         """Return the date time for next Tuesday"""
-        next_tuesday = self._today_date + datetime.timedelta(
-            (1 - self._today_date.weekday()) % 7
-        )
+        next_tuesday = self._today_date + datetime.timedelta((1 - self._today_date.weekday()) % 7)
         return next_tuesday
 
     @property

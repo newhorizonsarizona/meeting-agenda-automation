@@ -180,20 +180,12 @@ class RangeAssignments:
             value_populated: bool = False
             for range_assignment_value_map in self.range_assignments_map.values():
                 value_row_idx: int = 0
-                for range_assignment_value_row_values in range_assignment_value_map[
-                    "names"
-                ]:
+                for range_assignment_value_row_values in range_assignment_value_map["names"]:
                     value_column_idx: int = 0
-                    for (
-                        range_assignment_value_col_value
-                    ) in range_assignment_value_row_values:
+                    for range_assignment_value_col_value in range_assignment_value_row_values:
                         if (
-                            range_assignment_value_map["formulas"][value_row_idx][
-                                value_column_idx
-                            ]
-                            == None
-                            and meeting_assignment_key
-                            == range_assignment_value_col_value
+                            range_assignment_value_map["formulas"][value_row_idx][value_column_idx] == None
+                            and meeting_assignment_key == range_assignment_value_col_value
                         ):
                             range_assignment_value_map["values"][value_row_idx][
                                 value_column_idx
