@@ -19,7 +19,9 @@ jobs:
       run: pip3 install pipenv && pipenv install --dev
 
     - name: Test Python
+      if: ${{ github.event_name == 'push' }}
       run: make test-python
       
     - name: Debug Agenda Creation
+      if: ${{ github.ref == 'refs/heads/master' }}
       run: make debug
