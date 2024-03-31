@@ -27,7 +27,7 @@ jobs:
     - name: Test Agenda Creation
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
-        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > test.env
-        echo "export LOGURU_LEVEL=DEBUG" >> test.env
-        echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> test.env 
+        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+        echo "export LOGURU_LEVEL=DEBUG" >> .env
+        echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> .env 
         make test
