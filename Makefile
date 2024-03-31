@@ -28,12 +28,15 @@ az-publish: az-login
 	func azure functionapp publish WeeklyMeetingAgenda
 
 az-delete: az-login
-	az functionapp function delete --function-name WeeklyMeetingAgendaApp --name WeeklyMeetingAgenda --resource-group weeklymeetingagenda 
+	az functionapp function delete --function-name WeeklyMeetingAgendaApp --name WeeklyMeetingAgenda --resource-group weeklymeetingagenda
 
-test-python: format lint 
+test-python: format lint
+
+test:
+	pipenv run python cli.py
 
 debug:
-	pipenv run export LOGURU_LEVEL=DEBUG && python cli.py
+	pipenv shell "source cred.sh && export LOGURU_LEVEL=DEBUG && python cli.py"
 
 run:
-	pipenv run export LOGURU_LEVEL=INFO && python cli.py
+	pipenv shell "source cred.sh && export LOGURU_LEVEL=INFO && python cli.py"

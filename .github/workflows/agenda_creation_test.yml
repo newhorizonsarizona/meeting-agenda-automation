@@ -6,8 +6,8 @@ on:
     - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
 
 env:
-  CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-  USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
+  TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+  TEST_USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
 
 jobs:
   build:
@@ -24,6 +24,10 @@ jobs:
       if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
       run: make test-python
       
-    - name: Debug Agenda Creation
+    - name: Test Agenda Creation
       if: ${{ github.ref == 'refs/heads/main' }}
-      run: make debug
+      run: |
+        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > test.env
+        echo "export LOGURU_LEVEL=DEBUG" >> test.env
+        echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> test.env 
+        make test
