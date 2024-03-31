@@ -33,7 +33,7 @@ az-delete: az-login
 test-python: format lint 
 
 debug:
-	pipenv run source cred.sh && export LOGURU_LEVEL=DEBUG && python cli.py
+	pipenv run export LOGURU_LEVEL=DEBUG && python cli.py
 
 run:
-	pipenv run source cred.sh && export LOGURU_LEVEL=INFO && python cli.py
+	pipenv run export LOGURU_LEVEL=INFO && python cli.py
