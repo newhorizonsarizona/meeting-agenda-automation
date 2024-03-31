@@ -3,10 +3,11 @@ name: Agenda creation test and debug
 on:
   push:
   schedule:
-    - cron: '0 0 * * 4' # Runs at midnight UTC on Thursday
+    - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
 
 env:
   CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+  USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
 
 jobs:
   build:
