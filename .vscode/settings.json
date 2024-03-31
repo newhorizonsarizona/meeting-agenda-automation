@@ -9,6 +9,9 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
+    "[makefile]":  {
+        "files.trimTrailingWhitespace": true
+    },
     "python.formatting.provider": "none",
     "editor.tabSize": 4,
     "editor.insertSpaces": false,
