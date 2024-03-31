@@ -1,11 +1,13 @@
 name: Agenda creation test and debug 
 
 on:
+  push:
   schedule:
-    - cron: '0 0 * * 4' # Runs at midnight UTC on Thursday
+    - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
 
 env:
   CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+  USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
 
 jobs:
   build:
@@ -19,9 +21,9 @@ jobs:
       run: pip3 install pipenv && pipenv install --dev
 
     - name: Test Python
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
       run: make test-python
       
     - name: Debug Agenda Creation
-      if: ${{ github.ref == 'refs/heads/master' }}
+      if: ${{ github.ref == 'refs/heads/main' }}
       run: make debug
