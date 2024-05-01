@@ -1,0 +1,31 @@
+name: Weekly Meeting Plan Creation test 
+
+on:
+  push:
+  schedule:
+    - cron: '0 9 * * 3' # Runs at 5am midnight UTC on Wednesday 
+
+env:
+  TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Prepare Python
+      run: pip3 install pipenv && pipenv install --dev
+
+    - name: Test Python
+      if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+      run: make test-python
+      
+    - name: Test Weekly Meeting Plan Creation
+      if: ${{ github.ref == 'refs/heads/main' }}
+      run: |
+        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+        echo "export LOGURU_LEVEL=DEBUG" >> .env
+        make test-planner-create

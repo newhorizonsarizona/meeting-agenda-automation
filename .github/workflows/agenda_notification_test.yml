@@ -1,0 +1,31 @@
+name: Agenda notification test
+
+on:
+  push:
+
+env:
+  TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+  TEST_USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Prepare Python
+      run: pip3 install pipenv && pipenv install --dev
+
+    - name: Test Python
+      if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+      run: make test-python
+      
+    - name: Test Agenda Notification
+      if: ${{ github.ref == 'refs/heads/main' && env.TEST_USER_AUTH_CODE != ''}}
+      run: |
+        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+        echo "export LOGURU_LEVEL=DEBUG" >> .env
+        echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> .env 
+        make test-agenda-notify
