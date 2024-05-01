@@ -69,7 +69,10 @@ class GraphHelper:
 
         if graph_response.status_code >= 200 and graph_response.status_code < 300:
             # Print the results in a JSON format
-            # print(graph_response.json())
-            return graph_response.json()
+            try:
+                return graph_response.json()
+            except:
+                logger.debug(f"The PATCH response was not json return text")
+                return graph_response.text
         else:
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")

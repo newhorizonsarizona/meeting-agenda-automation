@@ -1,4 +1,4 @@
-name: Agenda creation test and debug 
+name: Agenda creation test 
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-  TEST_USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
 
 jobs:
   build:
@@ -29,5 +28,4 @@ jobs:
       run: |
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
-        echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> .env 
-        make test
+        make test-agenda-create

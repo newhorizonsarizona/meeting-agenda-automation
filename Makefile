@@ -6,10 +6,12 @@ OUTPUT_PATH ?= ./dist
 
 format:
 	pipenv run black o365 --line-length 120
+	pipenv run black commands --line-length 120
 	pipenv run black agenda_http_trigger --line-length 120
 
 lint:
 	pipenv run pylint o365 --fail-under 9.30
+	pipenv run pylint commands --fail-under 9.30
 	pipenv run pylint agenda_http_trigger --fail-under 9.30
 
 package:
@@ -32,8 +34,14 @@ az-delete: az-login
 
 test-python: format lint
 
-test:
-	pipenv run python cli.py
+test-agenda-create:
+	./nhtm_automation.sh agenda create-weekly-meeting-agenda
+
+test-agenda-notify:
+	./nhtm_automation.sh agenda notify-on-teams
+
+test-planner-create:
+	./nhtm_automation.sh planner create-weekly-meeting-plan
 
 debug:
 	pipenv shell "source cred.sh && export LOGURU_LEVEL=DEBUG && python cli.py"
