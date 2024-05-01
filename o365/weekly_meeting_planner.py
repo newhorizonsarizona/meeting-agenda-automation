@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import time
 from loguru import logger
 from time import strftime, strptime
 from o365.auth.auth_helper import AuthHelper
@@ -57,21 +58,23 @@ class WeeklyMeetingPlanner:
         template_bucket = PlannerHelper.get_bucket_by_name(
             self._graph_client, Constants.WEEKLY_MEETING_TEMPLATE_PLAN_ID, "YYYYMMDD Meeting Roles"
         )
-        buckets_4_plan = PlannerHelper.fetch_all_buckets(self._graph_client, plan_id)
         tasks_in_template_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, template_bucket.id)
+        buckets_4_plan = PlannerHelper.fetch_all_buckets(self._graph_client, plan_id)
+        bucket_details_4_plan = {}
         for bucket_4_plan in buckets_4_plan:
-            if bucket_4_plan.name == "To do":
-                # PlannerHelper.delete_bucket_by_name(self._graph_client, plan_id, bucket_4_plan.name)
+            bucket_details_4_plan.update({bucket_4_plan.id: bucket_4_plan.name})
+        logger.debug(f"Bucket details for plan: {bucket_details_4_plan}")
+        for bucket_id, bucket_name in bucket_details_4_plan.items():
+            if bucket_name == "To do":
+                # PlannerHelper.delete_bucket_by_name(self._graph_client, plan_id, bucket_name)
                 continue
-            tasks_in_bucket_4_plan = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket_4_plan.id)
+            tasks_in_bucket_4_plan = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket_id)
             for task_in_template_bucket in tasks_in_template_bucket:
                 if tasks_in_bucket_4_plan:
                     found_task = False
                     for task_in_bucket_4_plan in tasks_in_bucket_4_plan:
                         if task_in_bucket_4_plan.title == task_in_template_bucket.title:
-                            logger.info(
-                                f"Found task with name {task_in_bucket_4_plan.title} in bucket id {bucket_4_plan.id}"
-                            )
+                            logger.info(f"Found task with name {task_in_bucket_4_plan.title} in bucket id {bucket_id}")
                             found_task = True
                             break
                     if found_task:
@@ -79,10 +82,11 @@ class WeeklyMeetingPlanner:
                 logger.debug(f"Creating task from template: {task_in_template_bucket}")
                 PlannerHelper.create_task_in_bucket(
                     self._graph_client,
-                    bucket_4_plan.id,
+                    bucket_id,
                     plan_id,
-                    strptime(bucket_4_plan.name.split()[0], "%Y%m%d"),
-                    task_in_template_bucket,
-                    " !",
+                    task_in_template_bucket.title,
+                    order_hint,
                 )
-                order_hint += order_hint
+                # TODO: Update task with due date and description
+                # strptime(bucket_name.split()[0], "%Y%m%d"),
+            del tasks_in_bucket_4_plan

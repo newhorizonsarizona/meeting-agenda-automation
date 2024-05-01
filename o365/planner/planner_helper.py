@@ -329,19 +329,18 @@ class PlannerHelper:
         graph_client: GraphServiceClient,
         bucket_id: str,
         plan_id: str,
-        due_date: date,
-        task: PlannerTask,
+        task_title: str,
         order_hint: str = " !",
     ):
         """Creates a task with with specified name, due date, assignment in the specified bucket_id for plan_id"""
         retry_count = 0
         while retry_count < 1:
             try:
-                logger.debug(f"Creating the task with name {task.title}, in bucket {bucket_id}")
+                logger.debug(f"Creating the task with name {task_title}, in bucket {bucket_id}")
                 request_body = PlannerTask(
                     plan_id=plan_id,
                     bucket_id=bucket_id,
-                    title=task.title,
+                    title=task_title,
                     assignments=None,
                     order_hint=order_hint,
                 )
