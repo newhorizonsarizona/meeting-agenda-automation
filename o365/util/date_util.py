@@ -34,6 +34,11 @@ class DateUtil:
         return self.next_tuesday.strftime("%m/%d/%Y")
 
     @property
+    def next_tuesday_day(self):
+        """Return the day for next Tuesday"""
+        return self.next_tuesday.strftime("%d")
+
+    @property
     def next_tuesday_month(self):
         """Return the abbreviated month string for next Tuesday"""
         return self.next_tuesday.strftime("%b")
@@ -46,9 +51,9 @@ class DateUtil:
     @property
     def next_month_first_day(self):
         """Return the first date for next month"""
-        return (self.today_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+        return (self._today_date.replace(day=1) + timedelta(days=32)).replace(day=1)
 
-    def all_tuesdays(self, for_next_month: bool = False):
+    def all_tuesdays(self, for_next_month: bool = False, reverse: bool = True):
         """Returns the list of Tuesdays of the month"""
         first_day_of_month = self._today_date
         if for_next_month:
@@ -64,7 +69,7 @@ class DateUtil:
             for i in range((last_day_of_month - first_day_of_month).days + 1)
             if (first_day_of_month + timedelta(days=i)).weekday() == calendar.TUESDAY
         ]
-
+        tuesdays_of_month.sort(reverse=reverse)
         logger.debug(tuesdays_of_month)
 
         return tuesdays_of_month
@@ -72,4 +77,4 @@ class DateUtil:
     @property
     def last_month_date(self):
         """Return the first date for last month"""
-        return (self.today_date.replace(day=28) - datetime.timedelta(days=32)).replace(day=1)
+        return (self._today_date.replace(day=28) - datetime.timedelta(days=32)).replace(day=1)

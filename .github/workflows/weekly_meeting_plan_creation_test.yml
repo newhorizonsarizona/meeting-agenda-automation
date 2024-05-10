@@ -24,7 +24,7 @@ jobs:
       run: make test-python
       
     - name: Test Weekly Meeting Plan Creation
-      if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/agenda-planner-commands' }}
+      if: ${{ github.ref == 'refs/heads/main' }}
       run: |
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env

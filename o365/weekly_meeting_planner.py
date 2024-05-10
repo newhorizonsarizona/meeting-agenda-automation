@@ -1,11 +1,13 @@
-from datetime import date, timedelta
-import time
+from datetime import date, datetime
+import json
 from loguru import logger
 from time import strftime, strptime
 from o365.auth.auth_helper import AuthHelper
+from o365.exception.agenda_exception import AgendaException
 from o365.planner.planner_helper import PlannerHelper
 from o365.util.constants import Constants
 from o365.util.date_util import DateUtil
+from o365.graph.graph_helper import GraphHelper
 
 
 class WeeklyMeetingPlanner:
@@ -58,35 +60,240 @@ class WeeklyMeetingPlanner:
         template_bucket = PlannerHelper.get_bucket_by_name(
             self._graph_client, Constants.WEEKLY_MEETING_TEMPLATE_PLAN_ID, "YYYYMMDD Meeting Roles"
         )
-        tasks_in_template_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, template_bucket.id)
+        tasks_in_template_bucket = []
+        tmp_tasks_in_template_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, template_bucket.id)
+        for tmp_task_in_template_bucket in tmp_tasks_in_template_bucket:
+            tasks_in_template_bucket.append(
+                {"id": tmp_task_in_template_bucket.id, "title": tmp_task_in_template_bucket.title}
+            )
         buckets_4_plan = PlannerHelper.fetch_all_buckets(self._graph_client, plan_id)
         bucket_details_4_plan = {}
         for bucket_4_plan in buckets_4_plan:
-            bucket_details_4_plan.update({bucket_4_plan.id: bucket_4_plan.name})
+            bucket_details_4_plan.update({bucket_4_plan.id: {"bucket_name": bucket_4_plan.name, "tasks_info": []}})
         logger.debug(f"Bucket details for plan: {bucket_details_4_plan}")
-        for bucket_id, bucket_name in bucket_details_4_plan.items():
-            if bucket_name == "To do":
-                # PlannerHelper.delete_bucket_by_name(self._graph_client, plan_id, bucket_name)
+        for bucket_id, bucket_details in bucket_details_4_plan.items():
+            if bucket_details["bucket_name"] == "To do":
+                # PlannerHelper.delete_bucket_by_name(self._graph_client, bucket_id, etag)
                 continue
             tasks_in_bucket_4_plan = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket_id)
-            for task_in_template_bucket in tasks_in_template_bucket:
+            logger.debug(f"Tasks in template bucket: {tasks_in_template_bucket}")
+            template_tasks_index = len(tasks_in_template_bucket) - 1
+            # Preserve order of tasks by looping in reverse with the provided order hint
+            while template_tasks_index >= 0:
+                task_in_template_bucket = tasks_in_template_bucket[template_tasks_index]
                 if tasks_in_bucket_4_plan:
                     found_task = False
                     for task_in_bucket_4_plan in tasks_in_bucket_4_plan:
-                        if task_in_bucket_4_plan.title == task_in_template_bucket.title:
+                        if task_in_bucket_4_plan.title == task_in_template_bucket["title"]:
                             logger.info(f"Found task with name {task_in_bucket_4_plan.title} in bucket id {bucket_id}")
                             found_task = True
+                            bucket_details_4_plan[bucket_id]["tasks_info"].append(
+                                {"id": task_in_bucket_4_plan.id, "title": task_in_bucket_4_plan.title}
+                            )
                             break
                     if found_task:
+                        template_tasks_index -= 1
                         continue
                 logger.debug(f"Creating task from template: {task_in_template_bucket}")
-                PlannerHelper.create_task_in_bucket(
+                new_task = PlannerHelper.create_task_in_bucket(
                     self._graph_client,
                     bucket_id,
                     plan_id,
-                    task_in_template_bucket.title,
+                    task_in_template_bucket["title"],
                     order_hint,
                 )
-                # TODO: Update task with due date and description
-                # strptime(bucket_name.split()[0], "%Y%m%d"),
+                if new_task:
+                    bucket_details_4_plan[bucket_id]["tasks_info"].append({"id": new_task.id, "title": new_task.title})
+                template_tasks_index -= 1
             del tasks_in_bucket_4_plan
+        self.populate_task_details_from_template(plan_id, bucket_details_4_plan, tasks_in_template_bucket)
+
+    def populate_task_details_from_template(
+        self, plan_id: str, bucket_details_4_plan: dict = None, tasks_in_template_bucket: list = None
+    ):
+        """Populates the task details in weekly meeting plan buckets from weekly meeting meeting template plan"""
+        logger.info(f"Populating weekly meeting task details from template in plan {plan_id}")
+        order_hint = " !"
+        if tasks_in_template_bucket is None or bucket_details_4_plan is None:
+            logger.info(f"The template tasks and/or target plan bucket details were not provided.")
+            return
+        logger.debug(f"Tasks in template bucket: {tasks_in_template_bucket}")
+        logger.debug(f"Bucket details for plan: {bucket_details_4_plan}")
+        for bucket_id, bucket_details in bucket_details_4_plan.items():
+            logger.info(f"Updating tasks in bucket name {bucket_details['bucket_name']}")
+            tasks_in_bucket_4_plan = bucket_details["tasks_info"]
+            template_tasks_index = len(tasks_in_template_bucket) - 1
+            # Preserve order of tasks by looping in reverse with the provided order hint
+            while template_tasks_index >= 0:
+                task_in_template_bucket = tasks_in_template_bucket[template_tasks_index]
+                if tasks_in_bucket_4_plan:
+                    for task_in_bucket_4_plan in tasks_in_bucket_4_plan:
+                        if task_in_bucket_4_plan["title"] == task_in_template_bucket["title"]:
+                            due_date_part: str = bucket_details["bucket_name"].split()[0]
+                            if datetime.strptime(due_date_part, "%Y%m%d").date() < date.today():
+                                logger.info(
+                                    f"Skipping task update as due date {due_date_part} has passed for task with name {task_in_bucket_4_plan['title']} in bucket id {bucket_id}"
+                                )
+                            logger.info(
+                                f"Updating task for task with name {task_in_bucket_4_plan['title']} in bucket id {bucket_id}"
+                            )
+                            self._update_planner_task(
+                                task_id=task_in_bucket_4_plan["id"],
+                                due_date_time=f"{due_date_part[0:4]}-{due_date_part[4:6]}-{due_date_part[6:8]}T12:00:00Z",
+                            )
+                            logger.info(
+                                f"Updating task details for task with name {task_in_bucket_4_plan['title']} in bucket id {bucket_id}"
+                            )
+                            task_details_in_template = PlannerHelper.fetch_task_details(
+                                self._graph_client, task_in_template_bucket["id"]
+                            )
+                            logger.debug(task_in_bucket_4_plan)
+                            self._update_planner_task_details(
+                                task_in_bucket_4_plan["id"],
+                                task_details_in_template.description,
+                                task_details_in_template.references,
+                            )
+                            break
+                template_tasks_index -= 1
+            del tasks_in_bucket_4_plan
+
+    # PATCH https://graph.microsoft.com/v1.0/planner/tasks/{task-id}
+    # Content-type: application/json
+    # Prefer: return=representation
+    # If-Match: W/"JzEtVGFzayAgQEBAQEBAQEBAQEBAQEBAWCc="
+
+    # {
+    #   "assignments": {
+    #     "fbab97d0-4932-4511-b675-204639209557": {
+    #       "@odata.type": "#microsoft.graph.plannerAssignment",
+    #       "orderHint": "N9917 U2883!"
+    #     }
+    #   },
+    #   "appliedCategories": {
+    #     "category3": true,
+    #     "category4": false
+    #   }
+    # }
+    def _update_planner_task(self, task_id: str, due_date_time: str, assigned_user_id: str = None):
+        """Update the planner task"""
+        try:
+            logger.debug(f"Updating the planner task {task_id}")
+            task = PlannerHelper.fetch_task(self._graph_client, task_id)
+            assignments = {}
+            if assigned_user_id is not None:
+                assignments = {
+                    assigned_user_id: {"@odata.type": "#microsoft.graph.plannerAssignment", "orderHint": " !"}
+                }
+            task_data = {
+                "bucketId": task.bucket_id,
+                "title": task.title,
+                "assignments": assignments,
+                "priority": task.priority,
+                "dueDateTime": due_date_time,
+            }
+            etag = task.additional_data["@odata.etag"]
+            graph_helper: GraphHelper = GraphHelper()
+            data_json = json.dumps(task_data)
+            logger.debug(data_json)
+            task_update_result = graph_helper.patch_request(
+                f"planner/tasks/{task_id}",
+                data_json,
+                {"Content-Type": "application/json", "If-Match": etag},
+            )
+            if task_update_result:
+                logger.debug(f"Task update result {task_update_result}")
+                return task_update_result
+        except AgendaException as e:
+            logger.error(f"Error updating task {task_id}. {e}")
+        return None
+
+    # PATCH https://graph.microsoft.com/v1.0/planner/tasks/{task-id}/details
+    # Content-type: application/json
+    # Prefer: return=representation
+    # If-Match: W/"JzEtVGFzayAgQEBAQEBAQEBAQEBAQEBAWCc="
+    # {
+    # "previewType": "noPreview",
+    # "references": {
+    #     "http%3A//developer%2Emicrosoft%2Ecom":{
+    #     "@odata.type": "microsoft.graph.plannerExternalReference",
+    #     "alias": "Documentation",
+    #     "previewPriority": " !",
+    #     "type": "Other"
+    #     },
+    #     "https%3A//developer%2Emicrosoft%2Ecom/en-us/graph/graph-explorer":{
+    #     "@odata.type": "microsoft.graph.plannerExternalReference",
+    #     "previewPriority": "  !!",
+    #     },
+    #     "http%3A//www%2Ebing%2Ecom": null
+    # },
+    # "checklist": {
+    #     "95e27074-6c4a-447a-aa24-9d718a0b86fa":{
+    #     "@odata.type": "microsoft.graph.plannerChecklistItem",
+    #     "title": "Update task details",
+    #     "isChecked": true
+    #     },
+    #     "d280ed1a-9f6b-4f9c-a962-fb4d00dc50ff":{
+    #     "@odata.type": "microsoft.graph.plannerChecklistItem",
+    #     "isChecked": true,
+    #     },
+    #     "a93c93c5-10a6-4167-9551-8bafa09967a7": null
+    # }
+    # }
+    def _update_planner_task_details(self, task_id: str, description: str, references):
+        """Update the planner task details"""
+        try:
+            logger.debug(f"Updating the planner task details for task {task_id}")
+            task_details = PlannerHelper.fetch_task_details(self._graph_client, task_id)
+            logger.debug(task_details)
+            task_detail_references = {}
+            order_hint = " !"
+            if references.additional_data:
+                for ref_url, ref_details in references.additional_data.items():
+                    task_detail_references[ref_url] = {
+                        "@odata.type": ref_details["@odata.type"],
+                        "alias": ref_details["alias"],
+                        "previewPriority": order_hint,
+                        "type": ref_details["type"],
+                    }
+            task_details_2_update = {
+                "additional_data": task_details.additional_data,
+                "description": description,
+                "references": task_detail_references,
+            }
+            etag = task_details.additional_data["@odata.etag"]
+            graph_helper: GraphHelper = GraphHelper()
+            logger.debug(f"task details dict: {task_details_2_update}")
+            data_json = json.dumps(task_details_2_update)
+            logger.debug(f"task details json: {data_json}")
+            task_update_result = graph_helper.patch_request(
+                f"planner/tasks/{task_id}/details",
+                data_json,
+                {"Content-Type": "application/json", "If-Match": etag},
+            )
+            logger.debug(task_update_result)
+            if task_update_result:
+                logger.debug(f"Task details update result {task_update_result}")
+                return task_update_result
+        except AgendaException as e:
+            logger.error(f"Error updating task {task_id}. {e}")
+        return None
+
+    def sync_weekly_meeting_signup_with_plan(self, plan_name: str):
+        """Sync the weekly meeting signup tasks plan with the specified name"""
+        logger.info(f"Syncing the weekly meeting signup tasks with plan {plan_name}")
+        plan = PlannerHelper.get_plan_by_name(self._graph_client, self._group_id, plan_name)
+        if plan is None:
+            logger.error(f"Plan with name {plan_name} was not found.")
+            return
+        signup_plan = PlannerHelper.get_plan_by_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
+        if signup_plan is None:
+            logger.error(f"The Weekly Meeting Signup Plan was not found.")
+            return
+        signup_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, signup_plan.id, "Functionary Role")
+        if signup_bucket is None:
+            logger.error(f"The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
+            return
+        tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        if tasks_in_signup_bucket is None:
+            logger.info(f"There are no new task signups in the 'Functionary Role' bucket.")
+            return

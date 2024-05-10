@@ -32,7 +32,7 @@ az-publish: az-login
 az-delete: az-login
 	az functionapp function delete --function-name WeeklyMeetingAgendaApp --name WeeklyMeetingAgenda --resource-group weeklymeetingagenda
 
-test-python: format lint
+test-python: lint
 
 test-agenda-create:
 	./nhtm_automation.sh agenda create-weekly-meeting-agenda
@@ -42,9 +42,3 @@ test-agenda-notify:
 
 test-planner-create:
 	./nhtm_automation.sh planner create-weekly-meeting-plan
-
-debug:
-	pipenv shell "source cred.sh && export LOGURU_LEVEL=DEBUG && python cli.py"
-
-run:
-	pipenv shell "source cred.sh && export LOGURU_LEVEL=INFO && python cli.py"

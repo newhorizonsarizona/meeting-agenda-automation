@@ -72,7 +72,24 @@ class GraphHelper:
             try:
                 return graph_response.json()
             except:
-                logger.debug(f"The PATCH response was not json return text")
+                logger.debug(f"The PATCH response was not json return text. {graph_response}")
+                return graph_response.text
+        else:
+            raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
+
+    def delete_request(self, path: str, data: str, headers: dict):
+        """Make a DELETE request to the provided graph api path, passing the access token in a header"""
+        request_url = f"{self.url}/{path}"
+        logger.debug(f"Sending DELETE request to {request_url}")
+        self.headers.update(headers)
+        graph_response = requests.delete(request_url, data=data, headers=self.headers, timeout=self.timeout)
+
+        if graph_response.status_code >= 200 and graph_response.status_code < 300:
+            # Print the results in a JSON format
+            try:
+                return graph_response.json()
+            except:
+                logger.debug(f"The DELETE response was not json return text")
                 return graph_response.text
         else:
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
