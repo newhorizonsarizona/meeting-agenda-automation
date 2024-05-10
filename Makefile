@@ -42,3 +42,6 @@ test-agenda-notify:
 
 test-planner-create:
 	./nhtm_automation.sh planner create-weekly-meeting-plan
+
+test-planner-delete:
+	./nhtm_automation.sh planner delete-weekly-meeting-plan

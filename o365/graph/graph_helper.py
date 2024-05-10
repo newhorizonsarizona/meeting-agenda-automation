@@ -4,6 +4,7 @@ from loguru import logger
 
 from o365.auth.auth_helper import AuthHelper
 from o365.exception.agenda_exception import AgendaException
+from o365.exception.planner_exception import PlannerException
 
 
 class GraphHelper:
@@ -75,6 +76,8 @@ class GraphHelper:
                 logger.debug(f"The PATCH response was not json return text. {graph_response}")
                 return graph_response.text
         else:
+            if 'planner' in path:
+                raise PlannerException(f"Error {graph_response.status_code} - {graph_response.text}")
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
 
     def delete_request(self, path: str, data: str, headers: dict):
@@ -89,7 +92,9 @@ class GraphHelper:
             try:
                 return graph_response.json()
             except:
-                logger.debug(f"The DELETE response was not json return text")
+                logger.debug(f"The DELETE response was not json return text. {graph_response.text}")
                 return graph_response.text
         else:
+            if 'planner' in path:
+                raise PlannerException(f"Error {graph_response.status_code} - {graph_response.text}")
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")

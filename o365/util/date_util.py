@@ -78,3 +78,8 @@ class DateUtil:
     def last_month_date(self):
         """Return the first date for last month"""
         return (self._today_date.replace(day=28) - datetime.timedelta(days=32)).replace(day=1)
+
+    @property
+    def last_month_date_us(self):
+        """Return the date in MM/dd/yyyy US format for next Tuesday"""
+        return self.last_month_date.strftime("%m/%d/%Y")

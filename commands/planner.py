@@ -48,8 +48,12 @@ def create_weekly_meeting_plan(month, year):
 
 
 @planner_cmd.command()
-@click.option("--month", default=None, help="Month for which the plan is being created.")
+@click.option("--month", default=None, help="Month for which the plan is being deleted.")
 def delete_weekly_meeting_plan(month):
     """The planner command to delete the past weekly meeting plan"""
+    date_util = DateUtil()
+    next_tuesday_date = date_util.last_month_date_us
+    if month is None:
+        month = DateUtil(next_tuesday_date).next_tuesday_month
     logger.info(f"Deleting plan for month, {month}!")
-    PlannerCleanup().cleanup()
+    PlannerCleanup().cleanup([f"{month} - Weekly Meeting Signup"])

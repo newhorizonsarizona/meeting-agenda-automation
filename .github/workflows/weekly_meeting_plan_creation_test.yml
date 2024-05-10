@@ -1,10 +1,10 @@
-name: Weekly Meeting Plan Creation test 
+name: Weekly meeting plan deletion test 
 
 on:
-  push:
   schedule:
-    - cron: '0 9 * * 3' # Runs at 5am midnight UTC on Wednesday 
-
+    - cron: '0 9 25-31 1,3,5,7,8,10,12 WED' # Runs at 9am UTC on last Wednesday of the Jan,Mar,May,Jul,Aug,Oct
+    - cron: '0 9 24-30 4,6,9,11 WED' # Runs at 9am UTC on last Wednesday of Apr,Jun,Sep,Nov
+    - cron: '0 9 22-29 2 WED' # Runs at 9am UTC on last Wednesday of Feb
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
