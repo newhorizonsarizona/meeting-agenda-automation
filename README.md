@@ -52,7 +52,7 @@ pipenv install --dev
 pipenv shell 
 export CLIENT_SECRET=<CLIENT SECRET FROM AZURE APP REGISTRATION>
 ./nhtm_automation.sh planner delete-weekly-meeting-plan 
-./nhtm_automation.sh planner delete-weekly-meeting-plan  --month Apr
+./nhtm_automation.sh planner delete-weekly-meeting-plan --month Apr
 ```
 
 ## Test, package and publish pthon binaries
