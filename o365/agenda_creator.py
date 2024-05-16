@@ -334,7 +334,7 @@ class AgendaCreator:
             )
             if plan is None:
                 raise AgendaException(f"No matching plan found next week in group {self._group_id}")
-            bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, self._next_tuesday_date)
+            bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, f"{self._next_tuesday_date} Meeting Roles")
             if bucket is None:
                 raise AgendaException(f"No matching bucket found for next week in plan {plan.id}")
             tasks = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket.id)
