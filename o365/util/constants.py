@@ -7,3 +7,4 @@ class Constants:
         "aa235df6-19fc-4de3-8498-202b5cbe2d15",
         "1ab26305-df89-435b-802d-4f223a037771",
     ]
+    WEEKLY_MEETING_TEMPLATE_PLAN_ID = "mixhP6cY2UuVA52v9NFuVGUACpcr"

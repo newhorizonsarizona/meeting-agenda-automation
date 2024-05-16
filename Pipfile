@@ -10,6 +10,7 @@ httpx = "*"
 msgraph-sdk = "*"
 azure-functions = "*"
 loguru = "*"
+click = "*"
 
 [dev-packages]
 requests = "*"

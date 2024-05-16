@@ -1,10 +1,10 @@
-name: Agenda creation test 
+name: Weekly meeting plan deletion test 
 
 on:
-  push:
   schedule:
-    - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
-
+    - cron: '0 9 25-31 1,3,5,7,8,10,12 WED' # Runs at 9am UTC on last Wednesday of the Jan,Mar,May,Jul,Aug,Oct
+    - cron: '0 9 24-30 4,6,9,11 WED' # Runs at 9am UTC on last Wednesday of Apr,Jun,Sep,Nov
+    - cron: '0 9 22-29 2 WED' # Runs at 9am UTC on last Wednesday of Feb
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
@@ -23,9 +23,9 @@ jobs:
       if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
       run: make test-python
       
-    - name: Test Agenda Creation
+    - name: Test Weekly Meeting Plan Creation
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
-        make test-agenda-create
+        make test-planner-create

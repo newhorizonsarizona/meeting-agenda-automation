@@ -3,5 +3,7 @@ cred.sh
 *__pycache__*
 *.venv
 *local.settings.json
+dist*
+meeting_agenda_automation.egg-info*
 weeklymeetingagenda41e718/site/wwwroot/host.json
 o365/auth/__pycache__/auth_helper.cpython-311.pyc
