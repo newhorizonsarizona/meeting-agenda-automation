@@ -341,7 +341,7 @@ class AgendaCreator:
             if tasks is None:
                 raise AgendaException("No matching tasks found for next the meeting next week")
             meeting_assignments: dict = {}
-            for task in tasks.value:
+            for task in tasks:
                 assigned_to_user = self.get_assigned_to_user(task)
                 if assigned_to_user is not None:
                     logger.debug(
