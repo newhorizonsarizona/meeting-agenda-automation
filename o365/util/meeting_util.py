@@ -26,10 +26,10 @@ class MeetingUtil:
     @property
     def agenda_template_excel(self):
         """Return the name of the meeting agenda template excel file name"""
-        agenda_template_file_name: str = self._next_tuesday.strftime("NHTM Online Agenda Template %Y.xlsx")
+        tm_year = DateUtil().toastmaster_year(self._next_tuesday)
         if self.is_next_meeting_reverse:
-            agenda_template_file_name = self._next_tuesday.strftime("NHTM Online Agenda Reverse Template %Y.xlsx")
-        return agenda_template_file_name
+            return f"NHTM Online Agenda Reverse Template {tm_year}.xlsx"
+        return f"NHTM Online Agenda Template {tm_year}.xlsx"
 
     @property
     def is_next_meeting_reverse(self):

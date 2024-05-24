@@ -83,3 +83,11 @@ class DateUtil:
     def last_month_date_us(self):
         """Return the date in MM/dd/yyyy US format for next Tuesday"""
         return self.last_month_date.strftime("%m/%d/%Y")
+
+    def toastmaster_year(self, meeting_date: date = None):
+        """Returns the current toastmaster year"""
+        if meeting_date is None:
+            meeting_date = self.next_tuesday
+        if meeting_date.month > 6 and meeting_date.month <= 12:
+            return meeting_date.year + 1
+        return meeting_date.year
