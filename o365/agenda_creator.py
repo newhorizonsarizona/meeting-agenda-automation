@@ -216,7 +216,7 @@ class AgendaCreator:
                     self._meeting_agenda_excel,
                 )
             retry = retry + 1
-            if retry < 30:
+            if retry < 50:
                 time.sleep(30)
             else:
                 raise AgendaException(
@@ -334,7 +334,9 @@ class AgendaCreator:
             )
             if plan is None:
                 raise AgendaException(f"No matching plan found next week in group {self._group_id}")
-            bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, f"{self._next_tuesday_date} Meeting Roles")
+            bucket = PlannerHelper.get_bucket_by_name(
+                self._graph_client, plan.id, f"{self._next_tuesday_date} Meeting Roles"
+            )
             if bucket is None:
                 raise AgendaException(f"No matching bucket found for next week in plan {plan.id}")
             tasks = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket.id)
@@ -393,4 +395,4 @@ class AgendaCreator:
             logger.critical(f"Unexpected error has occurred. {e}")
 
         logger.error("No matching plan or buckets were found for next the meeting next week")
-        return "Failure"
+        exit(1)

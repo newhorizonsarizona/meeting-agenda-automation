@@ -76,7 +76,7 @@ class GraphHelper:
                 logger.debug(f"The PATCH response was not json return text. {graph_response}")
                 return graph_response.text
         else:
-            if 'planner' in path:
+            if "planner" in path:
                 raise PlannerException(f"Error {graph_response.status_code} - {graph_response.text}")
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
 
@@ -95,6 +95,6 @@ class GraphHelper:
                 logger.debug(f"The DELETE response was not json return text. {graph_response.text}")
                 return graph_response.text
         else:
-            if 'planner' in path:
+            if "planner" in path:
                 raise PlannerException(f"Error {graph_response.status_code} - {graph_response.text}")
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
