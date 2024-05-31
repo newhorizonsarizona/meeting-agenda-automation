@@ -1,4 +1,4 @@
-name: Weekly meeting plan deletion test 
+name: Weekly meeting plan creation test 
 
 on:
   schedule:
