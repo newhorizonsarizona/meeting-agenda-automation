@@ -184,7 +184,7 @@ class RangeAssignments:
                     value_column_idx: int = 0
                     for range_assignment_value_col_value in range_assignment_value_row_values:
                         if (
-                            range_assignment_value_map["formulas"][value_row_idx][value_column_idx] == None
+                            range_assignment_value_map["formulas"][value_row_idx][value_column_idx] is None
                             and meeting_assignment_key == range_assignment_value_col_value
                         ):
                             range_assignment_value_map["values"][value_row_idx][

@@ -6,9 +6,10 @@ class WeeklyMeetingMessage:
         " \
         {meeting_date} WEEKLY MEETING @ Cadence Living in Chandler, 100 W Queen Creek Rd., Chandler, AZ 85248<br/> \
         {attachments}<div>Dear New Horizons Toastmasters Club members,<br/><br/> \
-            Please find attached the agenda for the {meeting_day}, {meeting_date} meeting. This is going to be a hybrid meeting. Guests are welcome.<br/> \
-            {speakers_mention} please place your speech introduction(s) and evaluation forms in the meeting folder. {topics_master_mention} please post the  \
-            meeting theme here.<br/><br/> \
+            Please find attached the agenda for the {meeting_day}, {meeting_date} meeting. \
+                This is going to be a hybrid meeting. Guests are welcome.<br/> \
+            {speakers_mention} please place your speech introduction(s) and evaluation forms in the meeting folder. \
+                {topics_master_mention} please post the  meeting theme here.<br/><br/> \
             <u>Meeting Folder:</u> {meeting_folder_url}<br/> \
             <u>Agenda:</u> {meeting_agenda_url}<br/> \
             <b>REMINDERS:</b> Please mute your phones<br/><br/> \

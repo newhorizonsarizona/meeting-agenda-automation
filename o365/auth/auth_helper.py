@@ -11,8 +11,8 @@ from kiota_authentication_azure.azure_identity_authentication_provider import (
 
 from o365.util.constants import Constants
 
-tenant_id = Constants.TENANT_ID
-client_id = Constants.CLIENT_ID
+TENANT_ID = Constants.TENANT_ID
+CLIENT_ID = Constants.CLIENT_ID
 client_secret = os.environ["CLIENT_SECRET"]
 user_auth_code = os.environ.get("USER_AUTH_CODE")
 
@@ -25,25 +25,26 @@ class AuthHelper:
         """
         Acquire token via MSAL
         """
-        authority_url = f"https://login.microsoftonline.com/{tenant_id}"
+        authority_url = f"https://login.microsoftonline.com/{TENANT_ID}"
         app = ConfidentialClientApplication(
             authority=authority_url,
-            client_id=client_id,
+            client_id=CLIENT_ID,
             client_credential=client_secret,
         )
         token = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-        if token and token["access_token"] is not None:
-            return token["access_token"]
+        if token.get("access_token") is None:
+            return None
+        return token["access_token"]
 
     @staticmethod
     def acquire_token_auth_code():
         """
         Acquire token on behalf of user via MSAL
         """
-        authority_url = f"https://login.microsoftonline.com/{tenant_id}"
+        authority_url = f"https://login.microsoftonline.com/{TENANT_ID}"
         app = ConfidentialClientApplication(
             authority=authority_url,
-            client_id=client_id,
+            client_id=CLIENT_ID,
             client_credential=client_secret,
         )
         token = app.acquire_token_by_authorization_code(
@@ -54,8 +55,9 @@ class AuthHelper:
         if token:
             if token.get("access_token") is not None:
                 return token["access_token"]
-            else:
-                logger.error(f"Invalid token: {token}")
+            logger.error(f"Invalid token: {token}")
+        
+        return None
 
     @staticmethod
     def client_service_credential():
@@ -63,8 +65,8 @@ class AuthHelper:
         Get the client service credential
         """
         credential = ClientSecretCredential(
-            tenant_id,
-            client_id,
+            TENANT_ID,
+            CLIENT_ID,
             client_secret,
         )
         return credential

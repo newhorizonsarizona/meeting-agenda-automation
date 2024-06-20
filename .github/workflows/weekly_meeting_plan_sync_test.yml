@@ -1,8 +1,8 @@
-name: Weekly meeting plan deletion test
+name: Weekly meeting plan sync test
 
 on:
   schedule:
-    - cron: '0 9 1-7 * MON' # Runs at 9am UTC on first Monday of the Month
+    - cron: '0 21 * * 3,4,5,6,0' # Runs at 9pm UTC on Wednesday through Monday every week
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
@@ -21,9 +21,9 @@ jobs:
       if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
       run: make test-python
       
-    - name: Test Weekly Meeting Plan Deletion
+    - name: Test Weekly Meeting Signup Sync
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
-        make test-planner-delete
+        make test-sync-signup

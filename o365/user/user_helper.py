@@ -5,8 +5,6 @@ from msgraph import GraphServiceClient
 from kiota_abstractions.api_error import APIError
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 
-from o365.auth.auth_helper import AuthHelper
-
 
 class UserHelper:
     """This is a helper for Office 365 users"""

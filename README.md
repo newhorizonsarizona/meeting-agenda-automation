@@ -55,6 +55,18 @@ export CLIENT_SECRET=<CLIENT SECRET FROM AZURE APP REGISTRATION>
 ./nhtm_automation.sh planner delete-weekly-meeting-plan --month Apr
 ```
 
+### Sync Weekly Meeting Signup tasks for next week with tasks in bucket for next week
+To sync the signup tasks with tasks in bucket for next week. 
+```
+pip3 install pipenv 
+pipenv install --dev
+pipenv shell 
+export CLIENT_SECRET=<CLIENT SECRET FROM AZURE APP REGISTRATION>
+./nhtm_automation.sh planner sync-signup-with-plan 
+./nhtm_automation.sh planner sync-signup-with-plan --month Apr
+./nhtm_automation.sh planner sync-signup-with-plan --month Jan --year 2025
+```
+
 ## Test, package and publish pthon binaries
 - To test, package and publish python binaries
 ```

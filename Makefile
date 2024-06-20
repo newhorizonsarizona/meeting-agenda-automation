@@ -10,9 +10,9 @@ format:
 	pipenv run black agenda_http_trigger --line-length 120
 
 lint:
-	pipenv run pylint o365 --fail-under 9.30
-	pipenv run pylint commands --fail-under 9.30
-	pipenv run pylint agenda_http_trigger --fail-under 9.30
+	pipenv run pylint o365 --fail-under 9.80
+	pipenv run pylint commands --fail-under 10.0
+	pipenv run pylint agenda_http_trigger --fail-under 10.0
 
 package:
 	python setup.py sdist bdist_wheel
@@ -45,3 +45,6 @@ test-planner-create:
 
 test-planner-delete:
 	./nhtm_automation.sh planner delete-weekly-meeting-plan
+
+test-sync-signup:
+	./nhtm_automation.sh planner sync-signup-with-plan

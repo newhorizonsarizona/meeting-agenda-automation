@@ -35,7 +35,8 @@ class ExcelHelper:
     ):
         """Gets the range value of specified range address"""
         logger.debug(
-            f"Gets the range value in excel file {item_id} for worksheet {worksheet_id} of specified range address {range_address}"
+            f"Gets the range value in excel file {item_id} for worksheet {worksheet_id}\
+                  of specified range address {range_address}"
         )
         try:
             # range_address_query = "{" + range_address + "}"
@@ -65,7 +66,8 @@ class ExcelHelper:
     ):
         """Gets the range value of specified range address"""
         logger.debug(
-            f"Gets the cell in excel file {item_id} for worksheet {worksheet_id} of specified cell row={row}, column={column}"
+            f"Gets the cell in excel file {item_id} for worksheet {worksheet_id}\
+                  of specified cell row={row}, column={column}"
         )
         try:
             logger.debug(f"Getting cell {row}x{column}")

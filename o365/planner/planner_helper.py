@@ -1,5 +1,5 @@
 import asyncio
-from datetime import date, datetime
+from datetime import datetime
 import time
 from loguru import logger
 from msgraph import GraphServiceClient
@@ -116,7 +116,7 @@ class PlannerHelper:
     # GET /planner/buckets/{id}
     async def delete_bucket(graph_client: GraphServiceClient, bucket_id: str, etag: str):
         """Delete the bucket with the specified id"""
-        logger.debug(f"Deleting the plan with id {plan_id}")
+        logger.debug(f"Deleting the bucket with id {bucket_id}")
         try:
             request_configuration = (
                 PlannerBucketItemRequestBuilder.PlannerBucketItemRequestBuilderDeleteRequestConfiguration()
@@ -136,7 +136,8 @@ class PlannerHelper:
     async def create_task(graph_client: GraphServiceClient, task: PlannerTask):
         """Creates the task with the specified name. due date and assignment in the bucket id"""
         logger.debug(
-            f"Creating the task with name {task.title}, due {task.due_date_time}, in bucket {task.bucket_id} for plan {task.plan_id}"
+            f"Creating the task with name {task.title}, due {task.due_date_time},\
+                  in bucket {task.bucket_id} for plan {task.plan_id}"
         )
         try:
             result = await graph_client.planner.tasks.post(task)
@@ -277,16 +278,17 @@ class PlannerHelper:
                 if not due_date:
                     logger.error(f"Error the task {task_name} due date was not provided.")
                     return task_in_bucket
-                dueDateStr = due_date.strftime("%Y-%m-%d")
+                due_date_str = due_date.strftime("%Y-%m-%d")
                 if tasks and tasks.value:
                     for task in tasks.value:
                         if task_name in task.title:
                             if not task.dueDateTime:
                                 logger.error(
-                                    f"Error the task with {task_name} was found but does not have due date assigned {task.id}."
+                                    f"Error the task with {task_name} was found\
+                                          but does not have due date assigned {task.id}."
                                 )
                                 return task_in_bucket
-                            elif task.dueDateTime.strftime("%Y-%m-%d") == dueDateStr:
+                            if task.dueDateTime.strftime("%Y-%m-%d") == due_date_str:
                                 return task
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):

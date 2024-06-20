@@ -1,25 +1,22 @@
 from loguru import logger
-from datetime import date
 from o365.auth.auth_helper import AuthHelper
 from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 from o365.planner.planner_helper import PlannerHelper
 from o365.util.constants import Constants
-from o365.util.date_util import DateUtil
 
 
 class PlannerCleanup:
     """This class is used for planner cleanup tasks"""
 
     _graph_client = None
-    _last_month_first_day: date
     _group_id: str
 
-    def __init__(self, last_month_first_day: date = None):
+    def __init__(self):
         self._graph_client = AuthHelper.graph_service_client_with_adapter()
         self._group_id = Constants.GROUP_IDS[0]
 
-    def cleanup(self, plan_names: list = []):
+    def cleanup(self, plan_names: list):
         """Cleanup the specified plans"""
         for plan_name in plan_names:
             logger.info(f"Deleting plan with name {plan_name}")
