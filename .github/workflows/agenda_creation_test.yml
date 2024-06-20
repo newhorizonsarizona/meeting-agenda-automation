@@ -4,7 +4,11 @@ on:
   push:
   schedule:
     - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
-
+  workflow_run:
+    workflows: ["Weekly meeting plan sync test"]
+    types: [requested]
+    branches-ignore:
+      - "main"
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
