@@ -4,8 +4,9 @@ on:
   schedule:
     - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
   workflow_run:
-    workflows: ["Weekly meeting plan sync test"]
-    types: [requested]
+    workflows: [Weekly meeting plan sync test]
+    types:
+      - completed
     branches-ignore:
       - "main"
 env:

@@ -365,13 +365,13 @@ class WeeklyMeetingPlanner:
                     if "Speaker" in next_weeks_task.title:
                         speaker_ids.append(assigned_to_user.id)
                         speaker_count += 1
-                    if "Evaluator" in next_weeks_task.title:
+                    if "Manual Evaluator" in next_weeks_task.title:
                         evaulator_ids.append(assigned_to_user.id)
                         evaluator_count += 1
                     continue
                 if "Speaker" in signup_task.title.strip().title():
                     signup_task.title = f"Speaker {speaker_count}"
-                if "Evaluator" in signup_task.title.strip().title():
+                if "Manual Evaluator" in signup_task.title.strip().title():
                     signup_task.title = f"Manual Evaluator {evaluator_count}"
                 logger.debug(f"Signup task '{signup_task.title}', next week's task '{next_weeks_task.title}'")
                 if next_weeks_task.title.strip().title() in signup_task.title.strip().title():
