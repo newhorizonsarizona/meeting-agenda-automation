@@ -1,13 +1,12 @@
 import json
+import sys
 from loguru import logger
 from o365.agenda_creator import AgendaCreator
-from o365.auth.auth_helper import AuthHelper
 from o365.excel.range_assignments import RangeAssignments
 from o365.excel.range_assignments_reverse import RangeAssignmentsReverse
 from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 from o365.teams.weekly_meeting_message import WeeklyMeetingMessage
-from o365.util.constants import Constants
 from o365.teams.teams_helper import TeamsHelper
 
 
@@ -140,15 +139,16 @@ class AgendaNotifier(AgendaCreator):
                             agenda_worksheet_id,
                             f"{range_column}{range_row}",
                         )
-                        if range_values:
-                            if "Speaker" in range_assignment_value_col_value and range_values[0][0] != "":
-                                speaker_user = self._get_user_by_display_name(range_values[0][0])
-                                if speaker_user is not None:
-                                    speakers.append(speaker_user[0])
-                            elif "Topics Master" in range_assignment_value_col_value:
-                                topics_master_user = self._get_user_by_display_name(range_values[0][0])
-                                if topics_master_user is not None:
-                                    topics_master = topics_master_user[0]
+                        if range_values is None:
+                            continue
+                        if "Speaker" in range_assignment_value_col_value and range_values[0][0] != "":
+                            speaker_user = self._get_user_by_display_name(range_values[0][0])
+                            if speaker_user is not None:
+                                speakers.append(speaker_user[0])
+                        elif "Topics Master" in range_assignment_value_col_value:
+                            topics_master_user = self._get_user_by_display_name(range_values[0][0])
+                            if topics_master_user is not None:
+                                topics_master = topics_master_user[0]
                     range_row += 1
 
             logger.info(
@@ -185,7 +185,7 @@ class AgendaNotifier(AgendaCreator):
             logger.critical(f"Unexpected error sending agenda notification. {e}")
 
         logger.error("No matching plan or buckets were found for next the meeting next week")
-        exit(1)
+        sys.exit(1)
 
     def create_and_send(self):
         """Create the next meeting agenda and send the notification on teams"""

@@ -54,6 +54,7 @@ class TeamsHelper:
 
     @staticmethod
     def generate_chat_message(meeting_message: WeeklyMeetingMessage) -> ChatMessage:
+        """Generate the message for teams chat"""
         if meeting_message is None:
             return None
         chat_message = ChatMessage(
@@ -109,6 +110,7 @@ class TeamsHelper:
 
     @staticmethod
     def generate_chat_message_dict(meeting_message: WeeklyMeetingMessage) -> dict:
+        """Get the teams chat message dictionary"""
         if meeting_message is None:
             return None
         chat_message: dict = {"subject": meeting_message.subject}

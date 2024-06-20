@@ -1,16 +1,13 @@
+from urllib.parse import quote
 from loguru import logger
 from msgraph import GraphServiceClient
 from msgraph.generated.models.folder import Folder
 from msgraph.generated.models.drive_item import DriveItem
-from msgraph.generated.drives.item.drive_item_request_builder import (
-    DriveItemRequestBuilder,
-)
 from msgraph.generated.drives.item.items.item.copy.copy_post_request_body import (
     CopyPostRequestBody,
 )
 from msgraph.generated.models.item_reference import ItemReference
 from kiota_abstractions.api_error import APIError
-from urllib.parse import quote
 
 
 class DriveHelper:
@@ -136,7 +133,8 @@ class DriveHelper:
         """Create a folder under the parent item"""
         try:
             logger.debug(
-                f"Copying item {dest_item_name} with id {source_item_id} to destination with parent id {dest_parent_item_id}"
+                f"Copying item {dest_item_name} with id {source_item_id}\
+                      to destination with parent id {dest_parent_item_id}"
             )
             request_body = CopyPostRequestBody(
                 parent_reference=ItemReference(

@@ -43,7 +43,7 @@ class AgendaCreator:
         self._next_tuesday_month = date_util.next_tuesday_month
         meeting_util = MeetingUtil(self._next_tuesday)
         self._next_tuesday_meeting_docs = meeting_util.next_tuesday_meeting_docs
-        self._meeting_agenda_excel = meeting_util.next_tuesday_meeting_agenda_excel
+        self._meeting_agenda_excel = meeting_util.next_tuesday_agenda_excel
         self._agenda_template_excel = meeting_util.agenda_template_excel
         self._is_next_meeting_reverse = meeting_util.is_next_meeting_reverse
 
@@ -255,7 +255,8 @@ class AgendaCreator:
         """Get the worksheet range"""
         try:
             logger.debug(
-                f"Updating the worksheet range {range_address} for item {item_id} and worksheeet{worksheet_id} in drive {drive_id}"
+                f"Updating the worksheet range {range_address} for item {item_id} \
+                    and worksheeet{worksheet_id} in drive {drive_id}"
             )
             graph_helper: GraphHelper = GraphHelper()
             data_json = json.dumps(range_data)
@@ -313,8 +314,9 @@ class AgendaCreator:
             ma_agenda_template_item = self.search_item_with_name(
                 drive.id, self._agenda_template_excel, "Meeting Automation"
             )
-            if ma_agenda_template_item is not None:
-                ma_agenda_template_item_id = ma_agenda_template_item["id"]
+            if ma_agenda_template_item is None:
+                raise AgendaException(f"Agenda template `{self._agenda_template_excel}` not found.")
+            ma_agenda_template_item_id = ma_agenda_template_item["id"]
             logger.debug(f"NHTM Agenda Template Excel Item Id: {ma_agenda_template_item_id}")
 
             next_meeting_agenda_excel_item_id = self._get_next_meeting_agenda_excel_item(
@@ -395,4 +397,4 @@ class AgendaCreator:
             logger.critical(f"Unexpected error has occurred. {e}")
 
         logger.error("No matching plan or buckets were found for next the meeting next week")
-        exit(1)
+        sys.exit(1)

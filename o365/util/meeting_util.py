@@ -19,7 +19,7 @@ class MeetingUtil:
         return self._next_tuesday.strftime("%Y-%m-%d Meeting Docs")
 
     @property
-    def next_tuesday_meeting_agenda_excel(self):
+    def next_tuesday_agenda_excel(self):
         """Return the meeting agenda excel file name for next Tuesday"""
         return self._next_tuesday.strftime("NHTM Online Agenda %m-%d-%Y.xlsx")
 
