@@ -62,9 +62,9 @@ pip3 install pipenv
 pipenv install --dev
 pipenv shell 
 export CLIENT_SECRET=<CLIENT SECRET FROM AZURE APP REGISTRATION>
-./nhtm_automation.sh planner test-sync-signup 
-./nhtm_automation.sh planner test-sync-signup --month Apr
-./nhtm_automation.sh planner test-sync-signup --month Jan --year 2025
+./nhtm_automation.sh planner sync-signup-with-plan 
+./nhtm_automation.sh planner sync-signup-with-plan --month Apr
+./nhtm_automation.sh planner sync-signup-with-plan --month Jan --year 2025
 ```
 
 ## Test, package and publish pthon binaries
