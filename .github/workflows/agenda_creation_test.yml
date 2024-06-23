@@ -7,8 +7,8 @@ on:
     workflows: [Weekly meeting plan sync test]
     types:
       - completed
-    branches-ignore:
-      - "main"
+    branches:
+      - main
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
