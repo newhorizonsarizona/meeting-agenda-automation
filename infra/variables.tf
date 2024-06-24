@@ -13,6 +13,10 @@ variable "client_id" {
 	default = "68e11217-f842-4df4-8720-75a08c58f491"
 }
 
+variable "client_secret" {
+	type = string
+}
+
 variable "resource_group_name" {
   type = string
   default = "weeklymeetingagendars"

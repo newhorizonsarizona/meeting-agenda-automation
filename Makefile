@@ -31,10 +31,10 @@ install-tools:
 	wget https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_linux_386.zip && unzip terraform_1.8.5_linux_386.zip && rm -f terraform_1.8.5_linux_386.zip LICENSE.txt
 
 plan-infra:
-	./terraform -chdir=./infra/ plan
+	./terraform -chdir=./infra/ plan -var client_secret=$(CLIENT_SECRET)
 
 create-infra:
-	./terraform -chdir=./infra/ apply --auto-approve
+	./terraform -chdir=./infra/ apply -var client_secret=$(CLIENT_SECRET) --auto-approve
 
 destroy-infra:
 	./terraform -chdir=./infra/ destroy --auto-approve
@@ -50,6 +50,7 @@ list-app-publish-profiles:
 
 deploy-app: az-login package-notify-func
 	#func azure functionapp publish $(APP_NAME)
+	pushd $(FUNCTION_NAME) && pip install -r requirements.txt && popd
 	az functionapp deployment source config-zip --resource-group $(RESOURCE_GROUP) --name $(APP_NAME) --src ./$(PACKAGE_NAME).zip
 
 delete-app: az-login

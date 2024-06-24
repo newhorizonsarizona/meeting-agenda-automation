@@ -43,4 +43,24 @@ resource "azurerm_linux_function_app" "weekly_meeting_agenda_app" {
     }
   }
 
+  auth_settings {
+    enabled                       = true
+    default_provider              = "AzureActiveDirectory"
+    active_directory {
+      client_id     = var.client_id
+      client_secret = var.client_secret
+      allowed_audiences = [
+        "api://${var.client_id}" 
+      ]
+    }
+
+    token_store_enabled           = true
+    runtime_version               = "~1"
+    unauthenticated_client_action = "RedirectToLoginPage"
+    issuer                        = "https://sts.windows.net/${var.tenant_id}/"  # Replace with your Directory (tenant) ID
+    allowed_external_redirect_urls = [
+      "https://${var.function_app_name}.azurewebsites.net/api/notify"  # Replace with your Function App URL
+    ]
+  }
+
 }
