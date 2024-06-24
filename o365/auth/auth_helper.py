@@ -56,7 +56,7 @@ class AuthHelper:
             if token.get("access_token") is not None:
                 return token["access_token"]
             logger.error(f"Invalid token: {token}")
-        
+
         return None
 
     @staticmethod

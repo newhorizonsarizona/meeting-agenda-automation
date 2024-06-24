@@ -1,0 +1,27 @@
+name: Start Azure Function App
+
+on:
+  schedule:
+    - cron: '0 1 * * 5' # Runs at 1am UTC on Friday 
+env:
+  FUNCTION_APP_NAME: ${{ vars.FUNCTION_APP_NAME }}
+  RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
+  SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID }}
+
+jobs:
+  stop-function:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+      - name: Start Azure Function App
+        run: |
+          echo ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
+          az functionapp start --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --subscription ${{ env.SUBSCRIPTION_ID }}

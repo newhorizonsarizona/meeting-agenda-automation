@@ -1,0 +1,28 @@
+name: Stop Azure Function App
+
+on:
+  schedule:
+    - cron: '0 7 * * 5' # Runs at 7:00am UTC on Friday 
+env:
+  FUNCTION_APP_NAME: ${{ vars.FUNCTION_APP_NAME }}
+  RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
+  SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID }}
+  AZURE_FUNCTIONAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+jobs:
+  stop-function:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+      - name: Stop Azure Function App
+        run: |
+          echo ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
+          az functionapp stop --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --subscription ${{ env.SUBSCRIPTION_ID }}
