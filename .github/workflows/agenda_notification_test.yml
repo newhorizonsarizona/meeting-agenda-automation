@@ -2,10 +2,18 @@ name: Agenda notification test
 
 on:
   push:
+  schedule:
+    - cron: '0 2 * * 5' # Runs at 2am UTC on Friday 
+  workflow_dispatch:
+    inputs:
+      user_auth_code:
+        description: 'User Authorization Code'
+        required: true
 
 env:
   TEST_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
   TEST_USER_AUTH_CODE: ${{ secrets.USER_AUTH_CODE }}
+  TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
 
 jobs:
   build:
@@ -23,9 +31,17 @@ jobs:
       run: make test-python
       
     - name: Test Agenda Notification
-      if: ${{ github.ref == 'refs/heads/main' && env.TEST_USER_AUTH_CODE != ''}}
+      if: ${{ github.ref == 'refs/heads/main' && env.TEST_USER_AUTH_CODE != '' }}
       run: |
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
         echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> .env 
+        make test-agenda-notify
+
+    - name: Test Agenda Webhook Notification
+      if: ${{ github.ref == 'refs/heads/main' && env.TEAMS_WEBHOOK_URL != '' }}
+      run: |
+        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+        echo "export LOGURU_LEVEL=DEBUG" >> .env
+        echo "export TEAMS_WEBHOOK_URL=${{ env.TEAMS_WEBHOOK_URL }}" >> .env 
         make test-agenda-notify

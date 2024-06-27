@@ -39,4 +39,3 @@ class PlannerCleanup:
             )
         except AgendaException as e:
             logger.error(f"Error deleting plan: {e}")
-        return None

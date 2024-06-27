@@ -1,8 +1,12 @@
 cred.sh
+terraform
+LICENSE.txt
 .swp
 *__pycache__*
 *.venv
 *local.settings.json
+*.terraform
+*.zip
 dist*
 meeting_agenda_automation.egg-info*
 weeklymeetingagenda41e718/site/wwwroot/host.json

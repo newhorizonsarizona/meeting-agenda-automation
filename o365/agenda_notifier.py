@@ -106,6 +106,21 @@ class AgendaNotifier(AgendaCreator):
             logger.error(f"Error updating message on teams: {e}")
         return None
 
+    # POST https://newhorizonsarizonaorg.webhook.office.com/webhookb2/..
+    def _post_message_to_channel_webhook(self, message_adaptive_card: dict):
+        """Post the message on teams channel webhook url"""
+        try:
+            logger.debug("Posting message on teams channel webhook")
+            graph_helper: GraphHelper = GraphHelper()
+            headers = {"Content-Type": "application/json"}
+            result = graph_helper.post_request_to_url(
+                self._meeting_util.teams_webhook_url, message_adaptive_card, headers
+            )
+            if result:
+                logger.debug("Message was posted to the teams channel webhook successfully")
+        except AgendaException as e:
+            logger.error(f"Error posting message to the teams channel webhook: {e}")
+
     def send(self):
         """Send the agenda notification on teams"""
         logger.info("Preparing agenda notification")
@@ -163,9 +178,11 @@ class AgendaNotifier(AgendaCreator):
                 meeting_docs_folder_item,
                 next_meeting_agenda_excel_item,
             )
+            if self._meeting_util.teams_webhook_url is not None:
+                self._post_message_to_channel_webhook(meeting_message.adaptive_card_message)
+                return
             channel = self._get_teams_channel_by_display_name(self._group_id, "Weekly Meeting Channel")
             chat_message = TeamsHelper.generate_chat_message_dict(meeting_message)
-            logger.debug(chat_message)
             if channel is not None and chat_message is not None:
                 current_message = TeamsHelper.find_message_in_channel(
                     self._graph_client, self._group_id, channel[0]["id"], meeting_message
