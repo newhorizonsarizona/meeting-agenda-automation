@@ -182,7 +182,9 @@ class WeeklyMeetingPlanner:
     #     "category4": false
     #   }
     # }
-    def _update_planner_task(self, task_id: str, due_date_time: str, assigned_user_id: str = None):
+    def _update_planner_task(
+        self, task_id: str, due_date_time: str, assigned_user_id: str = None, percent_complete: int = 0
+    ):
         """Update the planner task"""
         try:
             logger.debug(f"Updating the planner task {task_id}")
@@ -198,6 +200,7 @@ class WeeklyMeetingPlanner:
                 "assignments": assignments,
                 "priority": task.priority,
                 "dueDateTime": due_date_time,
+                "percentComplete": percent_complete,
             }
             etag = task.additional_data["@odata.etag"]
             graph_helper: GraphHelper = GraphHelper()
@@ -332,9 +335,18 @@ class WeeklyMeetingPlanner:
             return
         tasks_in_signup_bucket: list = []
         for tmp_signup_task in tmp_tasks_in_signup_bucket:
+            if tmp_signup_task.percent_complete < 100 and tmp_signup_task.due_date_time < date.today():
+                self._update_planner_task(
+                    task_id=tmp_signup_task.id,
+                    due_date_time=f'{tmp_signup_task.due_date_time.strftime("%Y-%m-%d")}T12:00:00Z',
+                    assigned_user_id=self._get_assigned_to_user(tmp_signup_task).id,
+                    percent_complete=100,
+                )
+                continue
+            if tmp_signup_task.title == "Absent":
+                continue
             if (
                 tmp_signup_task.percent_complete < 100
-                and tmp_signup_task.title != "Absent"
                 and tmp_signup_task.due_date_time.strftime("%Y%m%d") == self._next_tuesday_date
             ):
                 logger.debug(

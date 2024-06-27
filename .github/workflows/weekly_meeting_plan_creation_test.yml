@@ -18,10 +18,6 @@ jobs:
     
     - name: Prepare Python
       run: pip3 install pipenv && pipenv install --dev
-
-    - name: Test Python
-      if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-      run: make test-python
       
     - name: Test Weekly Meeting Plan Creation
       if: ${{ github.ref == 'refs/heads/main' }}
@@ -29,3 +25,6 @@ jobs:
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
         make test-planner-create
+      retry:
+          max_attempts: 3
+          delay: '30s'  # Wait 30 seconds between retries

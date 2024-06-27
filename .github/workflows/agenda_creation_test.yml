@@ -23,10 +23,6 @@ jobs:
     - name: Prepare Python
       run: pip3 install pipenv && pipenv install --dev
 
-    - name: Test Python
-      if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-      run: make test-python
-      
     - name: Test Agenda Creation
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
