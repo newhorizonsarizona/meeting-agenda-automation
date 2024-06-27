@@ -31,6 +31,7 @@ class AgendaCreator:
     _meeting_agenda_excel: str
     _agenda_template_excel: str
     _is_next_meeting_reverse: bool
+    _meeting_util: MeetingUtil
 
     def __init__(self, today_date: str = None) -> None:
         """initialize the agenda creator"""
@@ -41,11 +42,11 @@ class AgendaCreator:
         self._next_tuesday_date = date_util.next_tuesday_date
         self._next_tuesday_date_us = date_util.next_tuesday_date_us
         self._next_tuesday_month = date_util.next_tuesday_month
-        meeting_util = MeetingUtil(self._next_tuesday)
-        self._next_tuesday_meeting_docs = meeting_util.next_tuesday_meeting_docs
-        self._meeting_agenda_excel = meeting_util.next_tuesday_agenda_excel
-        self._agenda_template_excel = meeting_util.agenda_template_excel
-        self._is_next_meeting_reverse = meeting_util.is_next_meeting_reverse
+        self._meeting_util = MeetingUtil(self._next_tuesday)
+        self._next_tuesday_meeting_docs = self._meeting_util.next_tuesday_meeting_docs
+        self._meeting_agenda_excel = self._meeting_util.next_tuesday_agenda_excel
+        self._agenda_template_excel = self._meeting_util.agenda_template_excel
+        self._is_next_meeting_reverse = self._meeting_util.is_next_meeting_reverse
 
     def get_assigned_to_user(self, task):
         """Gets assigned to user for task"""

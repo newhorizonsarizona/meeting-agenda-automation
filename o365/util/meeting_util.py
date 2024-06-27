@@ -37,3 +37,10 @@ class MeetingUtil:
         if os.environ.get("REVERSE_MEETING") is not None:
             return True
         return False
+
+    @property
+    def teams_webhook_url(self):
+        """Return the teams webhook url"""
+        if os.environ.get("TEAMS_WEBHOOK_URL") is not None:
+            return os.environ["TEAMS_WEBHOOK_URL"]
+        return None

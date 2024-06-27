@@ -37,7 +37,7 @@ create-infra:
 	./terraform -chdir=./infra/ apply -var client_secret=$(CLIENT_SECRET) --auto-approve
 
 destroy-infra:
-	./terraform -chdir=./infra/ destroy --auto-approve
+	./terraform -chdir=./infra/ destroy -var client_secret=$(CLIENT_SECRET) --auto-approve
 
 package-notify-func:
 	zip ./$(PACKAGE_NAME).zip $(FUNCTION_NAME)/*
@@ -54,7 +54,7 @@ deploy-app: az-login package-notify-func
 	az functionapp deployment source config-zip --resource-group $(RESOURCE_GROUP) --name $(APP_NAME) --src ./$(PACKAGE_NAME).zip
 
 delete-app: az-login
-	az functionapp function delete --function-name $(FUNCTION_NAME) --name $(APP_NAME) --resource-group $(RESOURCE_GROUP)
+	az functionapp function delete --function-name $(FUNCTION_NAME) --name $(APP_NAME) --resource-group $(RESOURCE_GROUP) --subscription $(SUBSCRIPTION_ID)
 
 start-app: az-login
 	az functionapp start --name $(APP_NAME) --resource-group $(RESOURCE_GROUP) --subscription $(SUBSCRIPTION_ID)

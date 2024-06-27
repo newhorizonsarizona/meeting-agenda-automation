@@ -18,11 +18,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Log in to Azure
+        if: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' }}
         uses: azure/login@v1
         with:
           creds: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
       - name: Stop Azure Function App
+        if: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' }}
         run: |
           echo ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
           az functionapp stop --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --subscription ${{ env.SUBSCRIPTION_ID }}

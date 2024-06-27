@@ -50,7 +50,7 @@ class AuthHelper:
         token = app.acquire_token_by_authorization_code(
             user_auth_code,
             scopes=["user.read"],
-            redirect_uri="https://weeklymeetingagenda.azurewebsites.net/",
+            redirect_uri="https://weeklymeetingagenda.azurewebsites.net/api/notify",
         )
         if token:
             if token.get("access_token") is not None:

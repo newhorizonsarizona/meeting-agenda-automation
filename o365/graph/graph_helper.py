@@ -98,3 +98,14 @@ class GraphHelper:
             if "planner" in path:
                 raise PlannerException(f"Error {graph_response.status_code} - {graph_response.text}")
             raise AgendaException(f"Error {graph_response.status_code} - {graph_response.text}")
+
+    def post_request_to_url(self, url: str, data: str, headers: dict):
+        """Make a POST data in request to the provided url, in a header"""
+        logger.debug(f"Sending POST request to {url}")
+        response = requests.post(url=url, headers=headers, data=data)
+        if response.status_code >= 200 and response.status_code < 300:
+            logger.debug(f"The message was posted successfully")
+            return True
+        else:
+            logger.error(f"Failed to post the message: {response.status_code}, {response.text}")
+            return False

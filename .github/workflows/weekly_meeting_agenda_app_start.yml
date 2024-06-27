@@ -7,6 +7,7 @@ env:
   FUNCTION_APP_NAME: ${{ vars.FUNCTION_APP_NAME }}
   RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
   SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID }}
+  AZURE_FUNCTIONAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
 jobs:
   stop-function:
@@ -17,11 +18,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Log in to Azure
+        if: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' }}
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          creds: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
       - name: Start Azure Function App
+        if: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' }}
         run: |
-          echo ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
+          echo ${{ AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
           az functionapp start --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --subscription ${{ env.SUBSCRIPTION_ID }}
