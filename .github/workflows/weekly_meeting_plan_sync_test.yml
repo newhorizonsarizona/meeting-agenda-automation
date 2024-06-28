@@ -23,6 +23,3 @@ jobs:
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
         make test-sync-signup
-      retry:
-          max_attempts: 3
-          delay: '30s'  # Wait 30 seconds between retries
