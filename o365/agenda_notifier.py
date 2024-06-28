@@ -113,8 +113,9 @@ class AgendaNotifier(AgendaCreator):
             logger.debug("Posting message on teams channel webhook")
             graph_helper: GraphHelper = GraphHelper()
             headers = {"Content-Type": "application/json"}
+            payload = {"text": message_adaptive_card}
             result = graph_helper.post_request_to_url(
-                self._meeting_util.teams_webhook_url, json.dumps(message_adaptive_card), headers
+                self._meeting_util.teams_webhook_url, json.dumps(payload), headers
             )
             if result:
                 logger.debug("Message was posted to the teams channel webhook successfully")
