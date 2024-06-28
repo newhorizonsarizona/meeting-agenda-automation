@@ -65,12 +65,12 @@ class WeeklyMeetingMessage:
             speakers_display_names=speakers_display_names, topics_master_display_name=topics_master_user["displayName"]
         )
         self._message_part3 = self._message_part3.format(
-            meeting_folder_url=f'[{meeting_folder_item["name"]}](\
-                                                            {meeting_folder_item["webUrl"]})'
+            meeting_folder_url=f'[{meeting_folder_item["name"].strip()}](\
+                                                            {meeting_folder_item["webUrl"].strip()})'
         )
         self._message_part4 = self._message_part4.format(
-            meeting_agenda_url=f'[{meeting_agenda_item["name"]}](\
-                                                            {meeting_agenda_item["webUrl"]})'
+            meeting_agenda_url=f'[{meeting_agenda_item["name"].strip()}](\
+                                                            {meeting_agenda_item["webUrl"].strip()})'
         )
         self._message = self._message.format(
             meeting_date=meeting_date,
@@ -118,6 +118,7 @@ class WeeklyMeetingMessage:
                                         "weight": "bolder",
                                         "size": "large",
                                         "wrap": True,
+                                        "isMarkdown": True
                                     }
                                 ],
                             },
