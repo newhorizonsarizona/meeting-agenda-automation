@@ -130,36 +130,42 @@ class WeeklyMeetingMessage:
                                         "weight": "bolder",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._salutation}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_part1}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_part2}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_part3}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_part4}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
@@ -167,18 +173,21 @@ class WeeklyMeetingMessage:
                                         "size": "medium",
                                         "weight": "bolder",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_footer1}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_footer2}",
                                         "size": "medium",
                                         "wrap": True,
+                                        "isMarkdown": true
                                     },
                                 ],
                             },
