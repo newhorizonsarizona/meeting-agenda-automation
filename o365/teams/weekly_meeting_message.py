@@ -21,7 +21,7 @@ class WeeklyMeetingMessage:
         " \
         {meeting_date} {title}<br/> \
         {attachments}<div>{salutation}<br/><br/> \
-            {_message_part1}<br/> \
+            {message_part1}<br/> \
             {speakers_mention} please place your speech introduction(s) and evaluation forms in the meeting folder. \
                 {topics_master_mention} please post the  meeting theme here.<br/><br/> \
             <u>Meeting Folder:</u> {meeting_folder_url}<br/> \
