@@ -20,7 +20,7 @@ class PlannerCleanup:
         """Cleanup the specified plans"""
         for plan_name in plan_names:
             logger.info(f"Deleting plan with name {plan_name}")
-            plan = PlannerHelper.get_plan_by_name(self._graph_client, self._group_id, plan_name)
+            plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
             if plan is None:
                 logger.info(f"The plan with {plan_name} was not found")
                 return

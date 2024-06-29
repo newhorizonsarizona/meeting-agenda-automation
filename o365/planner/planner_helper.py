@@ -199,6 +199,31 @@ class PlannerHelper:
         return plan_by_name
 
     @staticmethod
+    def get_plan_by_exact_name(graph_client: GraphServiceClient, group_id: str, plan_name: str):
+        """Gets plan by name for the specified group_id"""
+        retry_count = 0
+        plan_by_name = None
+        while retry_count < 3:
+            try:
+                logger.debug(f"Getting the plan in group: {group_id} with exact name {plan_name}")
+                plans = asyncio.run(PlannerHelper.get_all_plans(graph_client, group_id))
+                logger.debug(plans)
+                if plans and plans.value:
+                    for plan in plans.value:
+                        if plan_name.lower() == plan.title.lower():
+                            logger.debug(f"Found plan {plan}")
+                            return plan
+            except RuntimeError as e:
+                if "Event loop is closed" in str(e):
+                    if retry_count < 3:
+                        retry_count = retry_count + 1
+                        time.sleep(5)
+                    else:
+                        logger.error(f"Unexpected error getting plan with exact name {plan_name}. {e}")
+                        break  # do something here, like log the error
+        return plan_by_name
+
+    @staticmethod
     def get_bucket_by_name(graph_client, plan_id, bucket_name):
         """Gets bucket by name for the specified plan id"""
         retry_count = 0

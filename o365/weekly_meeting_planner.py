@@ -317,11 +317,11 @@ class WeeklyMeetingPlanner:
     def sync_weekly_meeting_signup_with_plan(self, plan_name: str):
         """Sync the weekly meeting signup tasks plan with the specified name"""
         logger.info(f"Syncing the weekly meeting signup tasks with plan {plan_name}")
-        plan = PlannerHelper.get_plan_by_name(self._graph_client, self._group_id, plan_name)
+        plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
         if plan is None:
             logger.error(f"Plan with name {plan_name} was not found.")
             return
-        signup_plan = PlannerHelper.get_plan_by_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
+        signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
         if signup_plan is None:
             logger.error("The Weekly Meeting Signup Plan was not found.")
             return
