@@ -335,7 +335,7 @@ class WeeklyMeetingPlanner:
             return
         tasks_in_signup_bucket: list = []
         for tmp_signup_task in tmp_tasks_in_signup_bucket:
-            if tmp_signup_task.percent_complete < 100 and tmp_signup_task.due_date_time < date.today():
+            if tmp_signup_task.percent_complete < 100 and tmp_signup_task.due_date_time.date() < date.today():
                 self._update_planner_task(
                     task_id=tmp_signup_task.id,
                     due_date_time=f'{tmp_signup_task.due_date_time.strftime("%Y-%m-%d")}T12:00:00Z',
