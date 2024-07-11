@@ -1,8 +1,9 @@
 name: Stop Azure Function App
 
 on:
-  schedule:
-    - cron: '0 7 * * 5' # Runs at 7:00am UTC on Friday 
+  workflow_dispatch: # manual trigger
+  # schedule:
+  #   - cron: '0 7 * * 5' # Runs at 7:00am UTC on Friday 
 env:
   FUNCTION_APP_NAME: ${{ vars.FUNCTION_APP_NAME }}
   RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
@@ -23,8 +24,8 @@ jobs:
         with:
           creds: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
-      - name: Stop Azure Function App
-        if: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' }}
-        run: |
-          echo ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
-          az functionapp stop --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --subscription ${{ env.SUBSCRIPTION_ID }}
+      # - name: Stop Azure Function App
+      #   if: ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE != '' }}
+      #   run: |
+      #     echo ${{ env.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} > publishProfile.publishsettings
+      #     az functionapp stop --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --subscription ${{ env.SUBSCRIPTION_ID }}

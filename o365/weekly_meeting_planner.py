@@ -317,10 +317,6 @@ class WeeklyMeetingPlanner:
     def sync_weekly_meeting_signup_with_plan(self, plan_name: str):
         """Sync the weekly meeting signup tasks plan with the specified name"""
         logger.info(f"Syncing the weekly meeting signup tasks with plan {plan_name}")
-        plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
-        if plan is None:
-            logger.error(f"Plan with name {plan_name} was not found.")
-            return
         signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
         if signup_plan is None:
             logger.error("The Weekly Meeting Signup Plan was not found.")
@@ -357,6 +353,10 @@ class WeeklyMeetingPlanner:
                 tasks_in_signup_bucket.append(tmp_signup_task)
         if not tasks_in_signup_bucket:
             logger.info(f"No new task signups found for {self._next_tuesday_date} in the 'Functionary Role' bucket.")
+            return
+        plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
+        if plan is None:
+            logger.error(f"Plan with name {plan_name} was not found.")
             return
         next_weeks_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, self._next_tuesday_date)
         if signup_bucket is None:
@@ -398,3 +398,55 @@ class WeeklyMeetingPlanner:
                         assigned_user_id=signup_assigned_to_user_id,
                     )
                     break
+
+    
+    def unassign_absentee_tasks_in_plan(self, plan_name: str):
+        """Unassign any tasks assigned to absentees in plan"""
+        logger.info(f"Unassigning tasks assigned to absentees in plan {plan_name}")
+        signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
+        if signup_plan is None:
+            logger.error("The Weekly Meeting Signup Plan was not found.")
+            return
+        signup_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, signup_plan.id, "Functionary Role")
+        if signup_bucket is None:
+            logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
+            return
+        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        if tmp_tasks_in_signup_bucket is None:
+            logger.info("There are no new task signups in the 'Functionary Role' bucket.")
+            return
+        absentee_user_ids = []
+        for tmp_signup_task in tmp_tasks_in_signup_bucket:
+            if tmp_signup_task.title == "Absent" and tmp_signup_task.due_date_time.date() == self._next_tuesday:
+                absentee_user = self._get_assigned_to_user(tmp_signup_task)
+                absentee_user_ids.append(absentee_user.id)
+                logger.debug(
+                    f"Found absentee task, \
+                        assigned to {absentee_user.display_name}"
+                )
+        if not absentee_user_ids:
+            logger.info(f"No absentees found for {self._next_tuesday_date} in the 'Functionary Role' bucket.")
+            return
+
+        plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
+        if plan is None:
+            logger.error(f"Plan with name {plan_name} was not found.")
+            return
+        next_weeks_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, self._next_tuesday_date)
+        if signup_bucket is None:
+            logger.error(f"Next weeks bucket '{self._next_tuesday_date}' was not found.")
+            return
+        tasks_in_next_weeks_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, next_weeks_bucket.id)
+        if tasks_in_next_weeks_bucket is None:
+            logger.info(f"There are no new tasks in the '{self._next_tuesday_date}' bucket.")
+            return
+        for next_weeks_task in tasks_in_next_weeks_bucket:
+            assigned_to_user = self._get_assigned_to_user(next_weeks_task)
+            logger.debug(f"Assigned user: {assigned_to_user}, Absentee user ids: {absentee_user_ids}")
+            if assigned_to_user is not None and assigned_to_user.id in absentee_user_ids:
+                assigned_to_user = None
+                self._update_planner_task(
+                    task_id=next_weeks_task.id,
+                    due_date_time=f"{self._next_tuesday_date[0:4]}-{self._next_tuesday_date[4:6]}-{self._next_tuesday_date[6:8]}T12:00:00Z",
+                    assigned_user_id=None,
+                )

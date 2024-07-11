@@ -102,10 +102,9 @@ class GraphHelper:
     def post_request_to_url(self, url: str, data: str, headers: dict):
         """Make a POST data in request to the provided url, in a header"""
         logger.debug(f"Sending POST request to {url}")
-        response = requests.post(url=url, headers=headers, data=data)
+        response = requests.post(url=url, headers=headers, data=data, timeout=120)
         if response.status_code >= 200 and response.status_code < 300:
             logger.debug(f"The message was posted successfully")
             return True
-        else:
-            logger.error(f"Failed to post the message: {response.status_code}, {response.text}")
-            return False
+        logger.error(f"Failed to post the message: {response.status_code}, {response.text}")
+        return False
