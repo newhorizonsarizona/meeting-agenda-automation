@@ -97,6 +97,7 @@ class WeeklyMeetingMessage:
 
     @property
     def adaptive_card_message(self):
+        """get the adaptive card message for notification"""
         adaptive_card_message = {
             "type": "message",
             "attachments": [

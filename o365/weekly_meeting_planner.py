@@ -183,7 +183,12 @@ class WeeklyMeetingPlanner:
     #   }
     # }
     def _update_planner_task(
-        self, task_id: str, due_date_time: str, assigned_user_id: str = None, percent_complete: int = 0, unassign_user: bool = False
+        self,
+        task_id: str,
+        due_date_time: str,
+        assigned_user_id: str = None,
+        percent_complete: int = 0,
+        unassign_user: bool = False,
     ):
         """Update the planner task"""
         try:
@@ -192,9 +197,7 @@ class WeeklyMeetingPlanner:
             assignments = {}
             if assigned_user_id is not None:
                 if unassign_user:
-                    assignments = {
-                        assigned_user_id: None
-                    }
+                    assignments = {assigned_user_id: None}
                 else:
                     assignments = {
                         assigned_user_id: {"@odata.type": "#microsoft.graph.plannerAssignment", "orderHint": " !"}
@@ -404,7 +407,6 @@ class WeeklyMeetingPlanner:
                     )
                     break
 
-    
     def unassign_absentee_tasks_in_plan(self, plan_name: str):
         """Unassign any tasks assigned to absentees in plan"""
         logger.info(f"Unassigning tasks assigned to absentees in plan {plan_name}")
@@ -453,5 +455,5 @@ class WeeklyMeetingPlanner:
                     task_id=next_weeks_task.id,
                     due_date_time=f"{self._next_tuesday_date[0:4]}-{self._next_tuesday_date[4:6]}-{self._next_tuesday_date[6:8]}T12:00:00Z",
                     assigned_user_id=assigned_to_user.id,
-                    unassign_user=True
+                    unassign_user=True,
                 )
