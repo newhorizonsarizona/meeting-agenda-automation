@@ -183,7 +183,7 @@ class WeeklyMeetingPlanner:
     #   }
     # }
     def _update_planner_task(
-        self, task_id: str, due_date_time: str, assigned_user_id: str = None, percent_complete: int = 0
+        self, task_id: str, due_date_time: str, assigned_user_id: str = None, percent_complete: int = 0, unassign_user: bool = False
     ):
         """Update the planner task"""
         try:
@@ -191,9 +191,14 @@ class WeeklyMeetingPlanner:
             task = PlannerHelper.fetch_task(self._graph_client, task_id)
             assignments = {}
             if assigned_user_id is not None:
-                assignments = {
-                    assigned_user_id: {"@odata.type": "#microsoft.graph.plannerAssignment", "orderHint": " !"}
-                }
+                if unassign_user:
+                    assignments = {
+                        assigned_user_id: None
+                    }
+                else:
+                    assignments = {
+                        assigned_user_id: {"@odata.type": "#microsoft.graph.plannerAssignment", "orderHint": " !"}
+                    }
             task_data = {
                 "bucketId": task.bucket_id,
                 "title": task.title,
@@ -444,9 +449,9 @@ class WeeklyMeetingPlanner:
             assigned_to_user = self._get_assigned_to_user(next_weeks_task)
             logger.debug(f"Assigned user: {assigned_to_user}, Absentee user ids: {absentee_user_ids}")
             if assigned_to_user is not None and assigned_to_user.id in absentee_user_ids:
-                assigned_to_user = None
                 self._update_planner_task(
                     task_id=next_weeks_task.id,
                     due_date_time=f"{self._next_tuesday_date[0:4]}-{self._next_tuesday_date[4:6]}-{self._next_tuesday_date[6:8]}T12:00:00Z",
-                    assigned_user_id=None,
+                    assigned_user_id=assigned_to_user.id,
+                    unassign_user=True
                 )
