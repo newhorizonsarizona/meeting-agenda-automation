@@ -3,7 +3,7 @@ name: Agenda notification test
 on:
   push:
   schedule:
-    - cron: '0 2 * * 5' # Runs at 2am UTC on Friday 
+    - cron: '0 5 * * 5' # Runs at 2am UTC on Friday 
   workflow_dispatch: # manual trigger
 
 env:
