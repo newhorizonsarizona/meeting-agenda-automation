@@ -2,7 +2,8 @@ name: Agenda creation test
 
 on:
   schedule:
-    - cron: '0 0 * * 5' # Runs at midnight UTC on Friday 
+    - cron: '0 3 * * 5' # Runs at midnight UTC on Friday 
+  workflow_dispatch: # manual trigger
   workflow_run:
     workflows: [Weekly meeting plan sync test]
     types:
