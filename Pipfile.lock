@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c250cc315682455d778448761432959845006d875840d938f9461165a03d1431"
+            "sha256": "0d6429f7fdf593844197e6a7cf79e69a3d1909bd39f9da26c123d47d674c2667"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3"
+            "python_version": "3.11"
         },
         "sources": [
             {
@@ -1330,15 +1330,6 @@
             "markers": "python_full_version >= '3.8.0'",
             "version": "==3.2.4"
         },
-        "async-timeout": {
-            "hashes": [
-                "sha256:4640d96be84d82d02ed59ea2b7105a0f7b33abe8703703cd0ab0bf87c427522f",
-                "sha256:7405140ff1230c310e51dc27b3145b9092d659ce68ff733fb0cefe3ee42be028"
-            ],
-            "index": "pypi",
-            "markers": "python_version >= '3.7'",
-            "version": "==4.0.3"
-        },
         "attrs": {
             "hashes": [
                 "sha256:5cfb1b9148b5b086569baec03f20d7b6bf3bcacc9a42bebf87ffaaca362f6346",
@@ -1634,15 +1625,6 @@
             ],
             "markers": "python_version >= '3.11'",
             "version": "==0.3.8"
-        },
-        "exceptiongroup": {
-            "hashes": [
-                "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad",
-                "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"
-            ],
-            "index": "pypi",
-            "markers": "python_version >= '3.7'",
-            "version": "==1.2.1"
         },
         "frozenlist": {
             "hashes": [
@@ -2318,15 +2300,6 @@
             ],
             "markers": "implementation_name != 'pypy'",
             "version": "==2.15.0"
-        },
-        "tomli": {
-            "hashes": [
-                "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
-                "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
-            ],
-            "index": "pypi",
-            "markers": "python_version >= '3.7'",
-            "version": "==2.0.1"
         },
         "tomlkit": {
             "hashes": [
