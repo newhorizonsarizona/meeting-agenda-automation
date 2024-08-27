@@ -21,6 +21,8 @@ azure-functions = "*"
 black = "*"
 pylint = "*"
 pyinstaller = "*"
+async-timeout = "4.0.3"
+exceptiongroup = "1.2.1"
 typing_extensions = "4.8.0"
 tomli = "2.0.1"
 
