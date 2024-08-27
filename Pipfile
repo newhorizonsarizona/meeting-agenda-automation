@@ -21,6 +21,7 @@ azure-functions = "*"
 black = "*"
 pylint = "*"
 pyinstaller = "*"
+typing_extensions = "4.8.0"
 
 [requires]
 python_version = "3"
