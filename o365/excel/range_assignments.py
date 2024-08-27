@@ -14,8 +14,8 @@ class RangeAssignments:
                 [None],  # G6
                 ["Joke Master"],  # G7
                 ["Toastmaster"],  # G8
-                ["General Evaluator"],  # G9
-                [None],  # G10
+                [None],  # G9
+                ["General Evaluator"],  # G10
                 ["Grammarian"],  # G11
                 ["Manual Evaluator 1"],  # G12
                 ["Manual Evaluator 2"],  # G13
@@ -147,7 +147,7 @@ class RangeAssignments:
                 [None],  # G22
                 [None],  # G23
                 [None],  # G24
-                ["=G9"],  # G25
+                ["=G10"],  # G25
                 [None],  # G26
                 ["=G12"],  # G27
                 ["=G13"],  # G28
@@ -156,7 +156,7 @@ class RangeAssignments:
                 ["=G16"],  # G31
                 ["=G15"],  # G32
                 ["=G11"],  # G33
-                ["=G9"],  # G34
+                ["=G10"],  # G34
                 ["=G8"],  # G35
                 [None],  # G36
                 [None],  # G37
