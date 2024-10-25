@@ -3,7 +3,7 @@ name: Agenda signup reminder test
 on:
   push:
   schedule:
-    - cron: '0 1 * * 6,7' # Runs at 1am UTC on Saturday and Sunday 
+    - cron: '0 1 * * 6,0' # Runs at 1am UTC on Saturday and Sunday 
   workflow_dispatch: # manual trigger
 
 env:
