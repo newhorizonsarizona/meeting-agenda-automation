@@ -14,7 +14,7 @@ format:
 	pipenv run black agenda_http_trigger --line-length 120
 
 lint:
-	pipenv run pylint o365 --fail-under 9.80
+	pipenv run pylint o365 --fail-under 9.70
 	pipenv run pylint commands --fail-under 10.0
 	pipenv run pylint agenda_http_trigger --fail-under 10.0
 

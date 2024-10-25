@@ -165,7 +165,8 @@ class AgendaNotifier(AgendaCreator):
                 )
                 if signup_reminder_card is None:
                     logger.info(
-                        f"Awesome! No functionary roles need to be filled at this time for Tuesday, {self._next_tuesday_date}."
+                        "Awesome! No functionary roles need to be filled at this time for Tuesday, " \
+                       f"{self._next_tuesday_date}."
                     )
                     return
                 logger.debug(f"Payload: {signup_reminder_card}")
