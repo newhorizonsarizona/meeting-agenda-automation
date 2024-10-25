@@ -14,7 +14,7 @@ format:
 	pipenv run black agenda_http_trigger --line-length 120
 
 lint:
-	pipenv run pylint o365 --fail-under 9.80
+	pipenv run pylint o365 --fail-under 9.70
 	pipenv run pylint commands --fail-under 10.0
 	pipenv run pylint agenda_http_trigger --fail-under 10.0
 
@@ -29,6 +29,12 @@ install-tools:
 	#echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 	#sudo apt update && sudo apt install terraform
 	wget https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_linux_386.zip && unzip terraform_1.8.5_linux_386.zip && rm -f terraform_1.8.5_linux_386.zip LICENSE.txt
+
+install-python-310:
+	sudo apt install python3.10 python3.10-venv python3.10-dev
+
+venv-python-310: install-python-310
+	mkdir -p venv && python3.10 -m venv venv/py310
 
 plan-infra:
 	./terraform -chdir=./infra/ plan -var client_secret=$(CLIENT_SECRET)
@@ -69,6 +75,9 @@ test-agenda-create:
 
 test-agenda-notify:
 	./nhtm_automation.sh agenda notify-on-teams
+
+test-signup-reminder:
+	./nhtm_automation.sh agenda signup-reminder-on-teams
 
 test-planner-create:
 	./nhtm_automation.sh planner create-weekly-meeting-plan

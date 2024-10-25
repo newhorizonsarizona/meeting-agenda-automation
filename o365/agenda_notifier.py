@@ -2,8 +2,7 @@ import json
 import sys
 from loguru import logger
 from o365.agenda_creator import AgendaCreator
-from o365.excel.range_assignments import RangeAssignments
-from o365.excel.range_assignments_reverse import RangeAssignmentsReverse
+from o365.agenda_excel import AgendaExcel
 from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 from o365.teams.weekly_meeting_message import WeeklyMeetingMessage
@@ -17,40 +16,6 @@ class AgendaNotifier(AgendaCreator):
         """initialize the agenda notifier"""
         super().__init__(today_date)
 
-    # GET /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:B2')?$select=values
-    def _get_range_values(self, drive_id: str, item_id: str, worksheet_id: str, range_address: str):
-        """Search the the drive id for matching item"""
-        try:
-            logger.debug(f"Getting the range values for item matching {item_id} for range address {range_address}")
-            graph_helper: GraphHelper = GraphHelper()
-            range_values = graph_helper.get_request(
-                f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')?$select=values",
-                {"Content-Type": "application/json"},
-            )
-            if range_values and range_values is not None:
-                logger.debug(range_values["values"])
-                return range_values["values"]
-        except AgendaException as e:
-            logger.error(f"Error gettng range values: {e}")
-        return None
-
-    # GET /users?$filter=startswith(displayName,'a')&$orderby=displayName&$count=true&$top=1
-    def _get_user_by_display_name(self, display_name: str):
-        """Get the users with display name that matches"""
-        try:
-            logger.debug(f"Getting the users that matches the name {display_name}")
-            graph_helper: GraphHelper = GraphHelper()
-            users = graph_helper.get_request(
-                f"/users?$filter=startswith(displayName,'{display_name.replace(' ','%20')}')&$count=true&$top=1&$select=id,displayName",
-                {"Content-Type": "application/json"},
-            )
-            if users and users["value"] is not None:
-                logger.debug(users["value"])
-                return users["value"]
-        except AgendaException as e:
-            logger.error(f"Error getting user display name: {e}")
-        return None
-
     # GET /teams/{team-id}/channels?$filter=startswith(displayName,'a')&$select=id,displayName
     def _get_teams_channel_by_display_name(self, team_id: str, display_name: str):
         """Get the users with display name that matches"""
@@ -58,7 +23,8 @@ class AgendaNotifier(AgendaCreator):
             logger.debug(f"Getting the teams channel that matches the {display_name}")
             graph_helper: GraphHelper = GraphHelper()
             channels = graph_helper.get_request(
-                f"/teams/{team_id}/channels?$filter=startswith(displayName,'{display_name.replace(' ','%20')}')&$select=id,displayName",
+                f"/teams/{team_id}/channels?"
+                f"$filter=startswith(displayName,'{display_name.replace(' ','%20')}')&$select=id,displayName",
                 {"Content-Type": "application/json"},
             )
             if channels and channels["value"] is not None:
@@ -131,52 +97,18 @@ class AgendaNotifier(AgendaCreator):
             next_meeting_agenda_excel_item = self._get_next_meeting_agenda_excel_item(
                 drive, meeting_docs_folder_item["id"]
             )
-            next_meeting_agenda_excel_item_id = next_meeting_agenda_excel_item["id"]
-            agenda_worksheet_id = self._get_agenda_worksheet_id(drive.id, next_meeting_agenda_excel_item_id)
-            logger.debug(f"Getting functionaries from Agenda worksheet: {agenda_worksheet_id}")
-
-            speakers: list = []
-            topics_master = None
-            range_assignments: RangeAssignments = (
-                RangeAssignments() if not self._is_next_meeting_reverse else RangeAssignmentsReverse()
-            )
-            range_assignments_map: dict = range_assignments.range_assignments_map
-            for range_assignment_value_map in range_assignments_map.values():
-                range_column: str = "G"
-                range_row: int = 5
-                for range_assignment_value_row_values in range_assignment_value_map["names"]:
-                    for range_assignment_value_col_value in range_assignment_value_row_values:
-                        if range_assignment_value_col_value is None:
-                            continue
-                        range_values = self._get_range_values(
-                            drive.id,
-                            next_meeting_agenda_excel_item_id,
-                            agenda_worksheet_id,
-                            f"{range_column}{range_row}",
-                        )
-                        if range_values is None:
-                            continue
-                        if "Speaker" in range_assignment_value_col_value and range_values[0][0] != "":
-                            speaker_user = self._get_user_by_display_name(range_values[0][0])
-                            if speaker_user is not None:
-                                speakers.append(speaker_user[0])
-                        elif "Topics Master" in range_assignment_value_col_value:
-                            topics_master_user = self._get_user_by_display_name(range_values[0][0])
-                            if topics_master_user is not None:
-                                topics_master = topics_master_user[0]
-                    range_row += 1
-
+            agenda_excel = AgendaExcel(drive.id, next_meeting_agenda_excel_item["id"], self._is_next_meeting_reverse)
             logger.info(
                 f"Successfully fetched assignments from the agenda for the next meeting on {self._next_tuesday_date}"
             )
-            logger.debug(f"Speakers: {speakers}, Topics Master: {topics_master}")
+
             meeting_message: WeeklyMeetingMessage = WeeklyMeetingMessage(
-                self._next_tuesday_date,
-                "Tuesday",
-                speakers,
-                topics_master,
-                meeting_docs_folder_item,
-                next_meeting_agenda_excel_item,
+                meeting_date=self._next_tuesday_date,
+                meeting_day="Tuesday",
+                speaker_users=agenda_excel.speaker_assignments,
+                topics_master_user=agenda_excel.topics_master_assignment,
+                meeting_folder_item=meeting_docs_folder_item,
+                meeting_agenda_item=next_meeting_agenda_excel_item,
             )
             if self._meeting_util.teams_webhook_url is not None:
                 self._post_message_to_channel_webhook(meeting_message.adaptive_card_message)
@@ -208,3 +140,39 @@ class AgendaNotifier(AgendaCreator):
         """Create the next meeting agenda and send the notification on teams"""
         self.create()
         self.send()
+
+    def send_signup_reminder(self):
+        """Send the agenda signup reminder notification on teams"""
+        logger.info("Preparing agenda signup reminder notification")
+        try:
+            drive = self.get_drive()
+            logger.debug(f"Drive id: {drive.id}")
+            meeting_docs_folder_item = self._get_meeting_docs_folder_item(drive)
+            next_meeting_agenda_excel_item = self._get_next_meeting_agenda_excel_item(
+                drive, meeting_docs_folder_item["id"]
+            )
+            agenda_excel = AgendaExcel(drive.id, next_meeting_agenda_excel_item["id"], self._is_next_meeting_reverse)
+            logger.info(
+                f"Successfully fetched assignments from the agenda for the next meeting on {self._next_tuesday_date}"
+            )
+
+            if self._meeting_util.teams_webhook_url is not None:
+                signup_reminder_card = WeeklyMeetingMessage.adaptive_card_signup_message(
+                    meeting_date=self._next_tuesday_date_us,
+                    meeting_day="Tuesday",
+                    meeting_agenda_item=next_meeting_agenda_excel_item,
+                    agenda_excel=agenda_excel,
+                )
+                if signup_reminder_card is None:
+                    logger.info(
+                        "Awesome! No functionary roles need to be filled at this time for Tuesday, " \
+                       f"{self._next_tuesday_date}."
+                    )
+                    return
+                logger.debug(f"Payload: {signup_reminder_card}")
+                self._post_message_to_channel_webhook(signup_reminder_card)
+                return
+
+        except RuntimeError as e:
+            logger.critical(f"Unexpected error sending agenda signup reminder notification. {e}")
+            sys.exit(1)
