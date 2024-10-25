@@ -4,12 +4,12 @@ import json
 import time
 import sys
 from loguru import logger
+from o365.agenda_excel import AgendaExcel
 from o365.util.constants import Constants
 from o365.util.meeting_util import MeetingUtil
 from o365.util.date_util import DateUtil
 from o365.auth.auth_helper import AuthHelper
 from o365.drive.drive_helper import DriveHelper
-from o365.excel.excel_helper import ExcelHelper
 from o365.excel.range_assignments import RangeAssignments
 from o365.excel.range_assignments_reverse import RangeAssignmentsReverse
 from o365.exception.agenda_exception import AgendaException
@@ -224,67 +224,6 @@ class AgendaCreator:
                     f"Could not find the id for the next meeting agenda excel {self._meeting_agenda_excel}"
                 )
 
-    # GET /drives/{drive-id}/items/{id}/workbook/worksheets/
-    def _get_agenda_worksheet_id(self, drive_id, item_id):
-        """Create the Agenda worksheet id"""
-        retry_count = 0
-        excel_worksheet_id = None
-        while retry_count < 10:
-            try:
-                logger.debug(f"Getting the agenda worksheet id for drive item: {item_id}")
-                worksheets = asyncio.run(ExcelHelper.get_worksheets(self._graph_client, drive_id, item_id))
-                if worksheets and worksheets.value:
-                    for worksheet in worksheets.value:
-                        if worksheet.name == "Agenda":
-                            return worksheet.id
-            except RuntimeError as e:
-                if "Event loop is closed" in str(e):
-                    if retry_count < 10:
-                        retry_count = retry_count + 1
-                        time.sleep(10)
-                    else:
-                        raise e
-        return excel_worksheet_id
-
-    # PATCH /drives/{drive-id}/items/{id}/workbook/worksheets/{id|name}/range(address='A1:A2')
-    # {
-    #    "values" : [["Hello", "100"],["1/1/2016", null]],
-    #    "formulas" : [[null, null], [null, "=B1*2"]],
-    #    "numberFormat" : [[null,null], ["m-ddd", null]]
-    # }
-    def _update_agenda_worksheet_range(self, drive_id, item_id, worksheet_id, range_address, range_data: dict):
-        """Get the worksheet range"""
-        try:
-            logger.debug(
-                f"Updating the worksheet range {range_address} for item {item_id} \
-                    and worksheeet{worksheet_id} in drive {drive_id}"
-            )
-            graph_helper: GraphHelper = GraphHelper()
-            data_json = json.dumps(range_data)
-            logger.debug(data_json)
-            range_update_result = graph_helper.patch_request(
-                f"/drives/{drive_id}/items/{item_id}/workbook/worksheets/{worksheet_id}/range(address='{range_address}')",
-                data_json,
-                {"Content-Type": "application/json"},
-            )
-            if range_update_result:
-                logger.debug(f"Range update result {range_update_result}")
-                return range_update_result
-        except AgendaException as e:
-            logger.error(f"Error updating worksheet range address {range_address}. {e}")
-        return None
-
-    def _populate_agenda_worksheet(self, drive_id, item_id, worksheet_id, range_assignments_map: dict):
-        """Populating the agenda worksheet based on specified range asssignments"""
-        for range_key, range_value in range_assignments_map.items():
-            range_data: dict = {
-                "values": range_value["values"],
-                "formulas": range_value["formulas"],
-                "numberFormat": range_value["formats"],
-            }
-            self._update_agenda_worksheet_range(drive_id, item_id, worksheet_id, range_key, range_data)
-            time.sleep(2)
-
     def _get_meeting_docs_folder_item(self, drive):
         """Get the meeting docs folder item"""
         meeting_docs_folder = self._next_tuesday_meeting_docs
@@ -363,19 +302,14 @@ class AgendaCreator:
         """Populate the meeting assignments in the agenda excel worksheet"""
         try:
             logger.debug("Populating the agenda excel worksheet with the assignments")
-            agenda_worksheet_id = self._get_agenda_worksheet_id(drive.id, next_meeting_agenda_excel_item_id)
-            logger.debug(f"Updating Agenda worksheet: {agenda_worksheet_id}")
             range_assignments: RangeAssignments = (
                 RangeAssignments() if not self._is_next_meeting_reverse else RangeAssignmentsReverse()
             )
             range_assignments_map: dict = range_assignments.populate_values(meeting_assignments)
             logger.debug(range_assignments_map)
-            self._populate_agenda_worksheet(
-                drive.id,
-                next_meeting_agenda_excel_item_id,
-                agenda_worksheet_id,
-                range_assignments_map,
-            )
+            agenda_excel = AgendaExcel(drive.id, next_meeting_agenda_excel_item_id, self._is_next_meeting_reverse)
+            agenda_worksheet_id = agenda_excel.populate(range_assignments_map)
+            logger.debug(f"Updated Agenda worksheet: {agenda_worksheet_id}")
             return agenda_worksheet_id
         except RuntimeError as re:
             raise AgendaException(f"An unexpected error occurred while populating the agenda excel worksheet. {re}")

@@ -146,7 +146,9 @@ class WeeklyMeetingPlanner:
                             )
                             self._update_planner_task(
                                 task_id=task_in_bucket_4_plan["id"],
-                                due_date_time=f"{due_date_part[0:4]}-{due_date_part[4:6]}-{due_date_part[6:8]}T12:00:00Z",
+                                due_date_time=f"{due_date_part[0:4]}-"
+                                f"{due_date_part[4:6]}-"
+                                f"{due_date_part[6:8]}T12:00:00Z",
                             )
                             logger.info(
                                 f"Updating task details for task with\
@@ -402,7 +404,9 @@ class WeeklyMeetingPlanner:
                         continue
                     self._update_planner_task(
                         task_id=next_weeks_task.id,
-                        due_date_time=f"{self._next_tuesday_date[0:4]}-{self._next_tuesday_date[4:6]}-{self._next_tuesday_date[6:8]}T12:00:00Z",
+                        due_date_time=f"{self._next_tuesday_date[0:4]}-"
+                        f"{self._next_tuesday_date[4:6]}-"
+                        f"{self._next_tuesday_date[6:8]}T12:00:00Z",
                         assigned_user_id=signup_assigned_to_user_id,
                     )
                     break
@@ -453,7 +457,9 @@ class WeeklyMeetingPlanner:
             if assigned_to_user is not None and assigned_to_user.id in absentee_user_ids:
                 self._update_planner_task(
                     task_id=next_weeks_task.id,
-                    due_date_time=f"{self._next_tuesday_date[0:4]}-{self._next_tuesday_date[4:6]}-{self._next_tuesday_date[6:8]}T12:00:00Z",
+                    due_date_time=f"{self._next_tuesday_date[0:4]}-"
+                    f"{self._next_tuesday_date[4:6]}-"
+                    f"{self._next_tuesday_date[6:8]}T12:00:00Z",
                     assigned_user_id=assigned_to_user.id,
                     unassign_user=True,
                 )

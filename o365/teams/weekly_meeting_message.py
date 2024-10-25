@@ -1,3 +1,6 @@
+from o365.agenda_excel import AgendaExcel
+
+
 class WeeklyMeetingMessage:
     """This class is used for storing the weekly meeting message"""
 
@@ -10,7 +13,7 @@ class WeeklyMeetingMessage:
     )
     _message_part2: str = (
         "{speakers_display_names} please place your speech introduction(s) and evaluation forms in the meeting folder. \
-                {topics_master_display_name} please post the  meeting theme here."
+                {topics_master_display_name} please post the meeting theme here."
     )
     _message_part3: str = "_Meeting Folder:_ {meeting_folder_url}"
     _message_part4: str = "_Agenda:_ {meeting_agenda_url}"
@@ -23,7 +26,7 @@ class WeeklyMeetingMessage:
         {attachments}<div>{salutation}<br/><br/> \
             {message_part1}<br/> \
             {speakers_mention} please place your speech introduction(s) and evaluation forms in the meeting folder. \
-                {topics_master_mention} please post the  meeting theme here.<br/><br/> \
+                {topics_master_mention} please post the meeting theme here.<br/><br/> \
             <u>Meeting Folder:</u> {meeting_folder_url}<br/> \
             <u>Agenda:</u> {meeting_agenda_url}<br/> \
             {message_reminders}<br/><br/> \
@@ -185,6 +188,99 @@ class WeeklyMeetingMessage:
                                     {
                                         "type": "TextBlock",
                                         "text": f"{self._message_footer2}",
+                                        "size": "medium",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                }
+            ],
+        }
+        return adaptive_card_message
+
+    @staticmethod
+    def adaptive_card_signup_message(meeting_date, meeting_day, meeting_agenda_item, agenda_excel: AgendaExcel):
+        """get the adaptive card message for signup reminder"""
+        _message_part1: str = (
+            f"Please signup [HERE](https://forms.office.com/r/wjCgSjdbk6) \
+                for the {meeting_day}, {meeting_date} meeting. \
+                    The following functionary roles have not yet been filled \
+                        on [{meeting_agenda_item["name"]}]({meeting_agenda_item["webUrl"]}')"
+        )
+        _message_part2: str = ""
+        for role_name, assignment_member in agenda_excel.all_functionary_role_assignments.items():
+            if assignment_member is None:
+                _message_part2 += f"* {role_name}\n\n"
+        if _message_part2 == "":
+            return None
+        adaptive_card_message = {
+            "type": "message",
+            "attachments": [
+                {
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": {
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "type": "AdaptiveCard",
+                        "version": "1.2",
+                        "body": [
+                            {
+                                "type": "Container",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Speaker/Functionary Role Signup Reminder",
+                                        "weight": "bolder",
+                                        "size": "large",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    }
+                                ],
+                            },
+                            {
+                                "type": "Container",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Available for next week's weekly meeting",
+                                        "weight": "bolder",
+                                        "size": "medium",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Dear New Horizons Toastmasters Club members,",
+                                        "size": "medium",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": _message_part1,
+                                        "size": "medium",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": _message_part2,
+                                        "size": "medium",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Best Regards,",
+                                        "size": "medium",
+                                        "wrap": True,
+                                        "isMarkdown": True,
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Toastmaster",
                                         "size": "medium",
                                         "wrap": True,
                                         "isMarkdown": True,

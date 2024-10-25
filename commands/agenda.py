@@ -18,6 +18,13 @@ def create_weekly_meeting_agenda():
 
 @agenda_cmd.command()
 def notify_on_teams():
-    """The agenda command to send the teams notification"""
+    """Send the teams agenda notification"""
     logger.info("Sending the teams notification!")
     AgendaNotifier().send()
+
+
+@agenda_cmd.command()
+def signup_reminder_on_teams():
+    """Send the signup reminder teams notification"""
+    logger.info("Sending the signup reminder teams notification!")
+    AgendaNotifier().send_signup_reminder()

@@ -70,6 +70,9 @@ test-agenda-create:
 test-agenda-notify:
 	./nhtm_automation.sh agenda notify-on-teams
 
+test-signup-reminder:
+	./nhtm_automation.sh agenda signup-reminder-on-teams
+
 test-planner-create:
 	./nhtm_automation.sh planner create-weekly-meeting-plan
 
