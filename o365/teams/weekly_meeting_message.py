@@ -208,7 +208,7 @@ class WeeklyMeetingMessage:
             f"Please signup [HERE](https://forms.office.com/r/wjCgSjdbk6) \
                 for the {meeting_day}, {meeting_date} meeting. \
                     The following functionary roles have not yet been filled \
-                        on [{meeting_agenda_item["name"]}]({meeting_agenda_item["webUrl"]}')"
+                        on [{meeting_agenda_item['name']}]({meeting_agenda_item['webUrl']})"
         )
         _message_part2: str = ""
         for role_name, assignment_member in agenda_excel.all_functionary_role_assignments.items():

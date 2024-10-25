@@ -30,6 +30,12 @@ install-tools:
 	#sudo apt update && sudo apt install terraform
 	wget https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_linux_386.zip && unzip terraform_1.8.5_linux_386.zip && rm -f terraform_1.8.5_linux_386.zip LICENSE.txt
 
+install-python-310:
+	sudo apt install python3.10 python3.10-venv python3.10-dev
+
+venv-python-310: install-python-310
+	mkdir -p venv && python3.10 -m venv venv/py310
+
 plan-infra:
 	./terraform -chdir=./infra/ plan -var client_secret=$(CLIENT_SECRET)
 
