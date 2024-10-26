@@ -30,8 +30,19 @@ pip3 install pipenv
 pipenv install --dev
 pipenv shell 
 export CLIENT_SECRET=<CLIENT SECRET FROM AZURE APP REGISTRATION>
-export USER_AUTH_CODE=<CODE FROM URL QUERYSTRING>
+export TEAMS_WEBHOOK_URL=<THE TEAMS CHANNEL WEBHOOK URL>
 ./nhtm_automation.sh agenda notify-on-teams
+```
+### Send Signup Reminder on Teams
+To send the notification on Teams, visit [the notification page](https://weeklymeetingagenda.azurewebsites.net/api/notify?code=3rNLQKGkzXi3kfC4fpgp0QK0ENoET6x-wfFpyEpHBFtlAzFuKXD3Cg%3D%3D&name=Officer)  associated to the NHTMAutomation App Registration.  
+If the app is down, get the `code` from the url query string, set environment variable and execute command
+```
+pip3 install pipenv 
+pipenv install --dev
+pipenv shell 
+export CLIENT_SECRET=<CLIENT SECRET FROM AZURE APP REGISTRATION>
+export TEAMS_WEBHOOK_URL=<THE TEAMS CHANNEL WEBHOOK URL>
+./nhtm_automation.sh agenda signup-reminder-on-teams
 ```
 ### Create next months Weekly Meeting Signup Plan
 To create the plan for next month. Add tasks from `YYYYMMDD Meeting Roles` bucket in the `Template - Weekly Meeting Signup` plan into corresponding buckets for next month. 
