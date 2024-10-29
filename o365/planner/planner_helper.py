@@ -178,7 +178,7 @@ class PlannerHelper:
         """Gets plan by name for the specified group_id"""
         retry_count = 0
         plan_by_name = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Getting the plan in group: {group_id} with name {plan_name}")
                 plans = asyncio.run(PlannerHelper.get_all_plans(graph_client, group_id))
@@ -190,7 +190,7 @@ class PlannerHelper:
                             return plan
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(5)
                     else:
@@ -203,7 +203,7 @@ class PlannerHelper:
         """Gets plan by name for the specified group_id"""
         retry_count = 0
         plan_by_name = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Getting the plan in group: {group_id} with exact name {plan_name}")
                 plans = asyncio.run(PlannerHelper.get_all_plans(graph_client, group_id))
@@ -215,7 +215,7 @@ class PlannerHelper:
                             return plan
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(5)
                     else:
@@ -228,7 +228,7 @@ class PlannerHelper:
         """Gets bucket by name for the specified plan id"""
         retry_count = 0
         bucket_by_name = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Getting the bucket {bucket_name} in plan: {plan_id}")
                 buckets = asyncio.run(PlannerHelper.get_all_buckets(graph_client, plan_id))
@@ -239,7 +239,7 @@ class PlannerHelper:
                             return bucket
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(5)
                     else:
@@ -252,7 +252,7 @@ class PlannerHelper:
         """Fetches all the buckets for the specified plan id"""
         retry_count = 0
         buckets = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Getting the buckets in plan: {plan_id}")
                 buckets = asyncio.run(PlannerHelper.get_all_buckets(graph_client, plan_id))
@@ -260,7 +260,7 @@ class PlannerHelper:
                     return buckets.value
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(5)
                     else:
@@ -330,7 +330,7 @@ class PlannerHelper:
         """Fetches all the tasks in the bucket"""
         retry_count = 0
         tasks_in_bucket = None
-        while retry_count < 3:
+        while retry_count < 10:
             try:
                 logger.debug(f"Getting the tasks in bucket: {bucket_id}")
                 tasks = asyncio.run(PlannerHelper.get_tasks_in_bucket(graph_client, bucket_id))
@@ -338,7 +338,7 @@ class PlannerHelper:
                     return tasks.value
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 10:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
@@ -351,7 +351,7 @@ class PlannerHelper:
         """Get the task"""
         retry_count = 0
         task = None
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Getting the task with id: {task_id}")
                 task = asyncio.run(PlannerHelper.get_task(graph_client, task_id))
@@ -359,7 +359,7 @@ class PlannerHelper:
                     return task
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
@@ -372,7 +372,7 @@ class PlannerHelper:
         """Get the task details"""
         retry_count = 0
         task_details = None
-        while retry_count < 3:
+        while retry_count < 10:
             try:
                 logger.debug(f"Getting the task details for: {task_id}")
                 task_details = asyncio.run(PlannerHelper.get_task_details(graph_client, task_id))
@@ -380,7 +380,7 @@ class PlannerHelper:
                     return task_details
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 10:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
@@ -392,7 +392,7 @@ class PlannerHelper:
     def delete_plan_by_name(graph_client: GraphServiceClient, group_id: str, plan_name: str):
         """Deletes plan by name for the specified group_id"""
         retry_count = 0
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Getting the plan to delete with name {plan_name}")
                 plan = PlannerHelper.get_plan_by_name(graph_client, group_id, plan_name)
@@ -403,7 +403,7 @@ class PlannerHelper:
                 asyncio.run(PlannerHelper.delete_plan(graph_client, plan.id, etag))
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
@@ -415,14 +415,14 @@ class PlannerHelper:
     def create_plan_with_name(graph_client: GraphServiceClient, group_id: str, plan_name: str):
         """Creates a plan with specified name in the specified group_id"""
         retry_count = 0
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Creating the plan with name {plan_name}")
                 plan = asyncio.run(PlannerHelper.create_plan(graph_client, plan_name, group_id))
                 return plan
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
@@ -434,14 +434,14 @@ class PlannerHelper:
     def create_bucket_with_name(graph_client: GraphServiceClient, plan_id: str, bucket_name: str, order_hint: str):
         """Creates a bucket with with specified name in the specified plan_id"""
         retry_count = 0
-        while retry_count < 3:
+        while retry_count < 5:
             try:
                 logger.debug(f"Creating the bucket with name {bucket_name}")
                 bucket = asyncio.run(PlannerHelper.create_bucket(graph_client, bucket_name, plan_id, order_hint))
                 return bucket
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
-                    if retry_count < 3:
+                    if retry_count < 5:
                         retry_count = retry_count + 1
                         time.sleep(10)
                     else:
@@ -459,7 +459,7 @@ class PlannerHelper:
     ):
         """Creates a task with with specified name, due date, assignment in the specified bucket_id for plan_id"""
         retry_count = 0
-        while retry_count < 1:
+        while retry_count < 2:
             try:
                 logger.debug(f"Creating the task with name {task_title}, in bucket {bucket_id}")
                 request_body = PlannerTask(
