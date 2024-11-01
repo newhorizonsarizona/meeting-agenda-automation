@@ -8,3 +8,5 @@ class Constants:
         "1ab26305-df89-435b-802d-4f223a037771",
     ]
     WEEKLY_MEETING_TEMPLATE_PLAN_ID = "mixhP6cY2UuVA52v9NFuVGUACpcr"
+
+    TEAMS_MSG_MAX_PAYLOAD_SIZE = 16 * 1024  # 16kb payload limit

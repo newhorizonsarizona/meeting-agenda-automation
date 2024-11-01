@@ -79,6 +79,9 @@ test-agenda-notify:
 test-signup-reminder:
 	./nhtm_automation.sh agenda signup-reminder-on-teams
 
+test-signup-sheet:
+	./nhtm_automation.sh agenda meeting-signup-sheet
+
 test-planner-create:
 	./nhtm_automation.sh planner create-weekly-meeting-plan
 

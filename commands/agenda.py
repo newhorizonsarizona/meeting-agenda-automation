@@ -28,3 +28,10 @@ def signup_reminder_on_teams():
     """Send the signup reminder teams notification"""
     logger.info("Sending the signup reminder teams notification!")
     AgendaNotifier().send_signup_reminder()
+
+
+@agenda_cmd.command()
+def meeting_signup_sheet():
+    """Send the signup meeting signup sheet"""
+    logger.info("Sending the meeting signup sheet !")
+    AgendaNotifier().send_meeting_signup_sheet()
