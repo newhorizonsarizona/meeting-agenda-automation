@@ -413,20 +413,20 @@ class WeeklyMeetingMessage:
                 }
             ]
             for meeting_date in meeting_dates:
-                date_val = urllib.parse.quote(f"{meeting_date.strftime('%m/%d/%Y')} 7:00 PM")
-                functionary_role_4_form = urllib.parse.quote(role_name)
-                if "Speaker" in role_name:
-                    functionary_role_4_form = urllib.parse.quote("Speaker")
-                elif "Manual Evaluator" in role_name:
-                    functionary_role_4_form = urllib.parse.quote("Manual Evaluator")
-                elif "WOW" in role_name:
-                    functionary_role_4_form = urllib.parse.quote("WOW (Words Of Wisdom)")
-                elif "GEM" in role_name:
-                    functionary_role_4_form = urllib.parse.quote("GEM (Great Educational Moment)")
-                # message_text = "[Signup](https://forms.office.com/r/wjCgSjdbk6)"
-                message_text = f"[Signup](https://forms.office.com/r/wjCgSjdbk6?\
-r9ac7132bd52447e2b6bcd479a021b876=%22{date_val}%22&\
-rc90e248ef4b146ecb89c31e0b4ca94c1=%22{functionary_role_4_form}%22)"
+                # date_val = urllib.parse.quote(f"{meeting_date.strftime('%m/%d/%Y')} 7:00 PM")
+                # functionary_role_4_form = urllib.parse.quote(role_name)
+                # if "Speaker" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("Speaker")
+                # elif "Manual Evaluator" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("Manual Evaluator")
+                # elif "WOW" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("WOW (Words Of Wisdom)")
+                # elif "GEM" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("GEM (Great Educational Moment)")
+                message_text = "[Signup](https://forms.office.com/r/wjCgSjdbk6)"
+                #                 message_text = f"[Signup](https://forms.office.com/r/wjCgSjdbk6?\
+                # r9ac7132bd52447e2b6bcd479a021b876=%22{date_val}%22&\
+                # rc90e248ef4b146ecb89c31e0b4ca94c1=%22{functionary_role_4_form}%22)"
                 if meeting_date_role_assignments and meeting_date_role_assignments[meeting_date][role_name] is not None:
                     message_text = weekly_meeting_planner.get_assigned_to_user(
                         meeting_date_role_assignments[meeting_date][role_name]
@@ -480,9 +480,9 @@ rc90e248ef4b146ecb89c31e0b4ca94c1=%22{functionary_role_4_form}%22)"
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": f"{absentee_member_names}[Signup](https://forms.office.com/r/wjCgSjdbk6?\
-r9ac7132bd52447e2b6bcd479a021b876=%22{date_val}%22&\
-rc90e248ef4b146ecb89c31e0b4ca94c1=%22Absent%22)",
+                            "text": f"{absentee_member_names}[Signup](https://forms.office.com/r/wjCgSjdbk6)",
+                            # ?r9ac7132bd52447e2b6bcd479a021b876=%22{date_val}%22&\
+                            # rc90e248ef4b146ecb89c31e0b4ca94c1=%22Absent%22)",
                             "wrap": "true",
                             "size": "medium",
                             "isMarkdown": "true",

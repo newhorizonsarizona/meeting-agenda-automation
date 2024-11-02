@@ -27,11 +27,11 @@ class DateUtil:
         upcoming_tuesdays = []
         next_date = self.next_tuesday
         i = 1
-        while i < 4:
-            next_date = next_date + timedelta(1) + timedelta((0 - next_date.weekday()) % 7)
-            logger.debug(f"Adding: {next_date}")
+        while i <= 4:
             if next_date not in self.get_last_two_tuesdays_of_year():
+                logger.debug(f"Adding: {next_date}")
                 upcoming_tuesdays.append(next_date)
+            next_date = next_date + timedelta(1) + timedelta((0 - next_date.weekday()) % 7)
             i += 1
 
         return upcoming_tuesdays
