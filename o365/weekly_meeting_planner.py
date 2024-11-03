@@ -30,12 +30,11 @@ class WeeklyMeetingPlanner:
         self._next_tuesday_date = date_util.next_tuesday_date
         if next_month_first_day is None:
             self._next_month_first_day = date_util.next_month_first_day
-            self._next_months_meeting_dates = date_util.all_tuesdays(True)
         else:
             self._next_month_first_day = next_month_first_day
-            self._next_months_meeting_dates = DateUtil(
-                f"{self._next_month_first_day.month}/{self._next_month_first_day.day}/{self._next_month_first_day.year}"
-            ).all_tuesdays()
+        self._next_months_meeting_dates = DateUtil(
+            f"{self._next_month_first_day.month}/{self._next_month_first_day.day}/{self._next_month_first_day.year}"
+        ).all_tuesdays()
 
     def create_plan(self, plan_name: str):
         """Creates weekly meeting plan with the specified name"""
@@ -299,7 +298,7 @@ class WeeklyMeetingPlanner:
             logger.error(f"Error updating task {task_id}. {e}")
         return None
 
-    def _get_assigned_to_user(self, task):
+    def get_assigned_to_user(self, task):
         """Gets assigned to user for task"""
         retry_count = 0
         assigned_to_user = None
@@ -327,49 +326,13 @@ class WeeklyMeetingPlanner:
     def sync_weekly_meeting_signup_with_plan(self, plan_name: str):
         """Sync the weekly meeting signup tasks plan with the specified name"""
         logger.info(f"Syncing the weekly meeting signup tasks with plan {plan_name}")
-        signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
-        if signup_plan is None:
-            logger.error("The Weekly Meeting Signup Plan was not found.")
-            return
-        signup_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, signup_plan.id, "Functionary Role")
-        if signup_bucket is None:
-            logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
-            return
-        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
-        if tmp_tasks_in_signup_bucket is None:
-            logger.info("There are no new task signups in the 'Functionary Role' bucket.")
-            return
-        tasks_in_signup_bucket: list = []
-        for tmp_signup_task in tmp_tasks_in_signup_bucket:
-            if tmp_signup_task.percent_complete < 100 and tmp_signup_task.due_date_time.date() < date.today():
-                self._update_planner_task(
-                    task_id=tmp_signup_task.id,
-                    due_date_time=f'{tmp_signup_task.due_date_time.strftime("%Y-%m-%d")}T12:00:00Z',
-                    assigned_user_id=self._get_assigned_to_user(tmp_signup_task).id,
-                    percent_complete=100,
-                )
-                continue
-            if tmp_signup_task.title == "Absent":
-                continue
-            if (
-                tmp_signup_task.percent_complete < 100
-                and tmp_signup_task.due_date_time.strftime("%Y%m%d") == self._next_tuesday_date
-            ):
-                logger.debug(
-                    f"Found signup task {tmp_signup_task.title}, \
-                        completion {tmp_signup_task.percent_complete}%, \
-                            due {tmp_signup_task.due_date_time}"
-                )
-                tasks_in_signup_bucket.append(tmp_signup_task)
-        if not tasks_in_signup_bucket:
-            logger.info(f"No new task signups found for {self._next_tuesday_date} in the 'Functionary Role' bucket.")
-            return
+
         plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
         if plan is None:
             logger.error(f"Plan with name {plan_name} was not found.")
             return
         next_weeks_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, self._next_tuesday_date)
-        if signup_bucket is None:
+        if next_weeks_bucket is None:
             logger.error(f"Next weeks bucket '{self._next_tuesday_date}' was not found.")
             return
         tasks_in_next_weeks_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, next_weeks_bucket.id)
@@ -378,42 +341,42 @@ class WeeklyMeetingPlanner:
             return
         speaker_ids = []
         evaulator_ids = []
-        for signup_task in tasks_in_signup_bucket:
-            speaker_count = 1
-            evaluator_count = 1
+        for functionary_role_name, signup_task in self.get_functionary_signups(self._next_tuesday).items():
+            if signup_task is None:
+                continue
             for next_weeks_task in tasks_in_next_weeks_bucket:
-                assigned_to_user = self._get_assigned_to_user(next_weeks_task)
+                assigned_to_user = self.get_assigned_to_user(next_weeks_task)
                 if assigned_to_user is not None:
                     if "Speaker" in next_weeks_task.title:
                         speaker_ids.append(assigned_to_user.id)
-                        speaker_count += 1
                     if "Manual Evaluator" in next_weeks_task.title:
                         evaulator_ids.append(assigned_to_user.id)
-                        evaluator_count += 1
                     continue
-                if "Speaker" in signup_task.title.strip().title():
-                    signup_task.title = f"Speaker {speaker_count}"
-                if "Manual Evaluator" in signup_task.title.strip().title():
-                    signup_task.title = f"Manual Evaluator {evaluator_count}"
-                logger.debug(f"Signup task '{signup_task.title}', next week's task '{next_weeks_task.title}'")
-                if next_weeks_task.title.strip().title() in signup_task.title.strip().title():
-                    signup_assigned_to_user_id = self._get_assigned_to_user(signup_task).id
-                    if "Speaker" in next_weeks_task.title and signup_assigned_to_user_id in speaker_ids:
+                if functionary_role_name in next_weeks_task.title.strip().title():
+                    signup_assigned_to_user = self.get_assigned_to_user(signup_task)
+                    if "Speaker" in next_weeks_task.title and (
+                        len(speaker_ids) == 3 or signup_assigned_to_user.id in speaker_ids
+                    ):
                         continue
-                    if "Evaluator" in next_weeks_task.title and signup_assigned_to_user_id in evaulator_ids:
+                    if "Manual Evaluator" in next_weeks_task.title and (
+                        len(evaulator_ids) == 3 or signup_assigned_to_user.id in evaulator_ids
+                    ):
                         continue
+                    logger.debug(
+                        f"Assigining '{signup_assigned_to_user.display_name}' as '{functionary_role_name}' for next week."
+                    )
                     self._update_planner_task(
                         task_id=next_weeks_task.id,
                         due_date_time=f"{self._next_tuesday_date[0:4]}-"
                         f"{self._next_tuesday_date[4:6]}-"
                         f"{self._next_tuesday_date[6:8]}T12:00:00Z",
-                        assigned_user_id=signup_assigned_to_user_id,
+                        assigned_user_id=signup_assigned_to_user.id,
                     )
                     break
 
-    def unassign_absentee_tasks_in_plan(self, plan_name: str):
-        """Unassign any tasks assigned to absentees in plan"""
-        logger.info(f"Unassigning tasks assigned to absentees in plan {plan_name}")
+    def close_past_due_weekly_meeting_signup_tasks(self):
+        """Close all the past due signup tasks"""
+        logger.info(f"Closing all past due weekly meeting signup tasks")
         signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
         if signup_plan is None:
             logger.error("The Weekly Meeting Signup Plan was not found.")
@@ -426,25 +389,31 @@ class WeeklyMeetingPlanner:
         if tmp_tasks_in_signup_bucket is None:
             logger.info("There are no new task signups in the 'Functionary Role' bucket.")
             return
-        absentee_user_ids = []
         for tmp_signup_task in tmp_tasks_in_signup_bucket:
-            if tmp_signup_task.title == "Absent" and tmp_signup_task.due_date_time.date() == self._next_tuesday:
-                absentee_user = self._get_assigned_to_user(tmp_signup_task)
-                absentee_user_ids.append(absentee_user.id)
-                logger.debug(
-                    f"Found absentee task, \
-                        assigned to {absentee_user.display_name}"
+            if tmp_signup_task.percent_complete < 100 and tmp_signup_task.due_date_time.date() < date.today():
+                self._update_planner_task(
+                    task_id=tmp_signup_task.id,
+                    due_date_time=f'{tmp_signup_task.due_date_time.strftime("%Y-%m-%d")}T12:00:00Z',
+                    assigned_user_id=self.get_assigned_to_user(tmp_signup_task).id,
+                    percent_complete=100,
                 )
-        if not absentee_user_ids:
-            logger.info(f"No absentees found for {self._next_tuesday_date} in the 'Functionary Role' bucket.")
-            return
+                continue
 
+    def unassign_absentee_tasks_in_plan(self, plan_name: str):
+        """Unassign any tasks assigned to absentees in plan"""
+        logger.info(f"Unassigning tasks assigned to absentees in plan {plan_name}")
+        anbsentee_signups = self.get_absentee_signups(self._next_tuesday_date)
+        if len(anbsentee_signups) == 0:
+            return
+        absentee_user_ids = []
+        for absentee_task in self.get_absentee_signups(self._next_tuesday.date):
+            absentee_user_ids.append(self.get_assigned_to_user(absentee_task).id)
         plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, plan_name)
         if plan is None:
             logger.error(f"Plan with name {plan_name} was not found.")
             return
         next_weeks_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, plan.id, self._next_tuesday_date)
-        if signup_bucket is None:
+        if next_weeks_bucket is None:
             logger.error(f"Next weeks bucket '{self._next_tuesday_date}' was not found.")
             return
         tasks_in_next_weeks_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, next_weeks_bucket.id)
@@ -452,7 +421,7 @@ class WeeklyMeetingPlanner:
             logger.info(f"There are no new tasks in the '{self._next_tuesday_date}' bucket.")
             return
         for next_weeks_task in tasks_in_next_weeks_bucket:
-            assigned_to_user = self._get_assigned_to_user(next_weeks_task)
+            assigned_to_user = self.get_assigned_to_user(next_weeks_task)
             logger.debug(f"Assigned user: {assigned_to_user}, Absentee user ids: {absentee_user_ids}")
             if assigned_to_user is not None and assigned_to_user.id in absentee_user_ids:
                 self._update_planner_task(
@@ -463,3 +432,109 @@ class WeeklyMeetingPlanner:
                     assigned_user_id=assigned_to_user.id,
                     unassign_user=True,
                 )
+
+    def get_functionary_signups(self, meeting_date: date = None, check_signup_assignments: bool = True) -> dict:
+        """Get all functionaries signups for the meeting date"""
+        functionary_signups: dict = {
+            "Joke Master": None,
+            "Toastmaster": None,
+            "General Evaluator": None,
+            "Speaker 1": None,
+            "Speaker 2": None,
+            "Speaker 3": None,
+            "Manual Evaluator 1": None,
+            "Manual Evaluator 2": None,
+            "Manual Evaluator 3": None,
+            "Ah Counter": None,
+            "Grammarian": None,
+            "Timer": None,
+            "Ballot Counter": None,
+            "WOW": None,
+            "GEM": None,
+        }
+        if not check_signup_assignments:
+            return functionary_signups
+        signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
+        if signup_plan is None:
+            logger.error("The Weekly Meeting Signup Plan was not found.")
+            return functionary_signups
+        signup_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, signup_plan.id, "Functionary Role")
+        if signup_bucket is None:
+            logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
+            return functionary_signups
+        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        if tmp_tasks_in_signup_bucket is None:
+            logger.info("There are no new task signups in the 'Functionary Role' bucket.")
+            return functionary_signups
+        for tmp_signup_task in tmp_tasks_in_signup_bucket:
+            if tmp_signup_task.percent_complete < 100 and tmp_signup_task.due_date_time.date() < date.today():
+                continue
+            if tmp_signup_task.title == "Absent":
+                continue
+            if tmp_signup_task.percent_complete < 100 and (
+                tmp_signup_task.due_date_time.strftime("%Y%m%d") == meeting_date.strftime("%Y%m%d")
+            ):
+                logger.debug(
+                    f"Found signup task {tmp_signup_task.title}, \
+                        completion {tmp_signup_task.percent_complete}%, \
+                            due {tmp_signup_task.due_date_time}"
+                )
+                speaker_count = 1
+                manual_evaluator_count = 1
+                if "Speaker" in tmp_signup_task.title:
+                    while speaker_count <= 3 and functionary_signups[f"Speaker {speaker_count}"] != None:
+                        speaker_count += 1
+                        continue
+                    if speaker_count == 3:
+                        logger.debug(f"All 3 speaker roles have been filled.")
+                        continue
+                    functionary_signups[f"Speaker {speaker_count}"] = tmp_signup_task
+                    continue
+                if "Manual Evaluator" in tmp_signup_task.title:
+                    while (
+                        manual_evaluator_count <= 3
+                        and functionary_signups[f"Manual Evaluator {manual_evaluator_count}"] != None
+                    ):
+                        manual_evaluator_count += 1
+                        continue
+                    if manual_evaluator_count == 3:
+                        logger.debug(f"All 3 Manual Evaluator roles have been filled.")
+                        continue
+                    functionary_signups[f"Manual Evaluator  {manual_evaluator_count}"] = tmp_signup_task
+                    continue
+                if "GEM" in tmp_signup_task.title:
+                    functionary_signups["GEM"] = tmp_signup_task
+                    continue
+                if "WOW" in tmp_signup_task.title:
+                    functionary_signups["WOW"] = tmp_signup_task
+                    continue
+                functionary_signups[tmp_signup_task.title] = tmp_signup_task
+
+        logger.debug(f"Functionary Signup: {functionary_signups}")
+        return functionary_signups
+
+    def get_absentee_signups(self, meeting_date: date):
+        """Get all the absentee signups for the meeting date"""
+        absentee_signups: list = []
+        signup_plan = PlannerHelper.get_plan_by_exact_name(self._graph_client, self._group_id, "Weekly Meeting Signup")
+        if signup_plan is None:
+            logger.error("The Weekly Meeting Signup Plan was not found.")
+            return absentee_signups
+        signup_bucket = PlannerHelper.get_bucket_by_name(self._graph_client, signup_plan.id, "Functionary Role")
+        if signup_bucket is None:
+            logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
+            return absentee_signups
+        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        if tmp_tasks_in_signup_bucket is None:
+            logger.info("There are no new task signups in the 'Functionary Role' bucket.")
+            return absentee_signups
+        for tmp_signup_task in tmp_tasks_in_signup_bucket:
+            if tmp_signup_task.title == "Absent" and tmp_signup_task.due_date_time.date() == meeting_date:
+                absentee_signups.append(tmp_signup_task)
+                absentee_user = self.get_assigned_to_user(tmp_signup_task)
+                logger.debug(
+                    f"Found absentee task, \
+                        assigned to {absentee_user.display_name}"
+                )
+
+        return absentee_signups

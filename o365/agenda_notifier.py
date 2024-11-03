@@ -7,6 +7,9 @@ from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 from o365.teams.weekly_meeting_message import WeeklyMeetingMessage
 from o365.teams.teams_helper import TeamsHelper
+from o365.util.constants import Constants
+from o365.util.date_util import DateUtil
+from o365.weekly_meeting_planner import WeeklyMeetingPlanner
 
 
 class AgendaNotifier(AgendaCreator):
@@ -91,6 +94,11 @@ class AgendaNotifier(AgendaCreator):
         """Send the agenda notification on teams"""
         logger.info("Preparing agenda notification")
         try:
+            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year:
+                logger.info(
+                    "Skip sending the agenda notification as we are having a break on {self._next_tuesday_date_us}"
+                )
+                return
             drive = self.get_drive()
             logger.debug(f"Drive id: {drive.id}")
             meeting_docs_folder_item = self._get_meeting_docs_folder_item(drive)
@@ -145,6 +153,9 @@ class AgendaNotifier(AgendaCreator):
         """Send the agenda signup reminder notification on teams"""
         logger.info("Preparing agenda signup reminder notification")
         try:
+            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year:
+                logger.info("Skip sending the signup reminderas we are having a break on {self._next_tuesday_date_us}")
+                return
             drive = self.get_drive()
             logger.debug(f"Drive id: {drive.id}")
             meeting_docs_folder_item = self._get_meeting_docs_folder_item(drive)
@@ -165,14 +176,65 @@ class AgendaNotifier(AgendaCreator):
                 )
                 if signup_reminder_card is None:
                     logger.info(
-                        "Awesome! No functionary roles need to be filled at this time for Tuesday, " \
-                       f"{self._next_tuesday_date}."
+                        "Awesome! No functionary roles need to be filled at this time for Tuesday, "
+                        f"{self._next_tuesday_date}."
                     )
                     return
+
                 logger.debug(f"Payload: {signup_reminder_card}")
                 self._post_message_to_channel_webhook(signup_reminder_card)
                 return
 
         except RuntimeError as e:
             logger.critical(f"Unexpected error sending agenda signup reminder notification. {e}")
+            sys.exit(1)
+
+    def send_meeting_signup_sheet(self):
+        """Send the meeting sheet notification on teams"""
+        logger.info("Preparing meeting signup sheet notification")
+        try:
+            if self._meeting_util.teams_webhook_url is not None:
+                next_few_meeting_dates = DateUtil().upcoming_tuesdays()
+                if len(next_few_meeting_dates) == 0:
+                    logger.info("Skip sending the meeting signup sheet as no meeting dates were found.")
+                    return
+                meeting_date_role_assignments = {}
+                for meeting_date in next_few_meeting_dates:
+                    meeting_date_role_assignments[meeting_date] = WeeklyMeetingPlanner().get_functionary_signups(
+                        meeting_date
+                    )
+                meeting_date_absentees = {}
+                for meeting_date in next_few_meeting_dates:
+                    meeting_date_absentees[meeting_date] = WeeklyMeetingPlanner().get_absentee_signups(meeting_date)
+                retry_count = 0
+                while retry_count < 3:
+                    logger.debug(f"Sending signup sheet for {next_few_meeting_dates}")
+                    signup_sheet_card = WeeklyMeetingMessage.adaptive_card_signup_sheet_message(
+                        meeting_date_role_assignments, meeting_date_absentees
+                    )
+                    signup_sheet_card_json = {
+                        "type": "message",
+                        "attachments": [
+                            {"contentType": "application/vnd.microsoft.card.adaptive", "content": signup_sheet_card}
+                        ],
+                    }
+                    logger.debug(f"Payload: {signup_sheet_card_json}")
+                    payload_size = len(json.dumps(signup_sheet_card_json).encode("utf-8"))
+                    if payload_size > Constants.TEAMS_MSG_MAX_PAYLOAD_SIZE:
+                        logger.error(
+                            f"Could not send message as payload size {payload_size/1024}kb"
+                            f"is greater than allowed limit {Constants.TEAMS_MSG_MAX_PAYLOAD_SIZE/1024}kb"
+                        )
+                        retry_count += 1
+                        meeting_date_role_assignments.pop(next_few_meeting_dates[-1])
+                        meeting_date_absentees.pop(next_few_meeting_dates[-1])
+                        next_few_meeting_dates.pop()
+                        continue
+                    logger.info(f"Sending Signup Sheet message of payload size {payload_size/1024}kb")
+                    self._post_message_to_channel_webhook(signup_sheet_card_json)
+                    break
+                return
+
+        except RuntimeError as e:
+            logger.critical(f"Unexpected error sending agenda signup sheet notification. {e}")
             sys.exit(1)

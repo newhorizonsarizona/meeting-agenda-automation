@@ -22,6 +22,20 @@ class DateUtil:
         next_tuesday = self._today_date + timedelta((1 - self._today_date.weekday()) % 7)
         return next_tuesday
 
+    def upcoming_tuesdays(self):
+        """Return the next four Tuesdays as an array"""
+        upcoming_tuesdays = []
+        next_date = self.next_tuesday
+        i = 1
+        while i <= 4:
+            if next_date not in self.get_last_two_tuesdays_of_year():
+                logger.debug(f"Adding: {next_date}")
+                upcoming_tuesdays.append(next_date)
+            next_date = next_date + timedelta(1) + timedelta((0 - next_date.weekday()) % 7)
+            i += 1
+
+        return upcoming_tuesdays
+
     @property
     def next_tuesday_date(self):
         """Return the date in yyyyMMdd format for next Tuesday"""
@@ -90,3 +104,16 @@ class DateUtil:
         if meeting_date.month > 6 and meeting_date.month <= 12:
             return meeting_date.year + 1
         return meeting_date.year
+
+    def get_last_two_tuesdays_of_year(self):
+        """Get the dates for the last two Tuesdays of the current year"""
+        # Start with the last day of the given year
+        last_day_of_year = datetime.datetime(date.today().year, 12, 31)
+
+        # Find the last Tuesday of the year
+        last_tuesday = last_day_of_year - timedelta(days=(last_day_of_year.weekday() - 1) % 7)
+
+        # Find the second last Tuesday by subtracting 7 days from the last Tuesday
+        second_last_tuesday = last_tuesday - timedelta(days=7)
+
+        return [second_last_tuesday, last_tuesday]

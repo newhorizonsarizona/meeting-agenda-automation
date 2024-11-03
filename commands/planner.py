@@ -26,6 +26,7 @@ def sync_signup_with_plan(month, year):
     next_month_first_day = datetime.datetime.strptime(f"01 {month}, {year}", "%d %b, %Y")
     weekly_meeting_planner = WeeklyMeetingPlanner(next_month_first_day)
     plan_name = f"{month} - Weekly Meeting Signup"
+    weekly_meeting_planner.close_past_due_weekly_meeting_signup_tasks()
     weekly_meeting_planner.unassign_absentee_tasks_in_plan(plan_name)
     weekly_meeting_planner.sync_weekly_meeting_signup_with_plan(plan_name)
 

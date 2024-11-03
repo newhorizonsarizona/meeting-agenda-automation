@@ -1,9 +1,9 @@
-name: Agenda signup reminder test
+name: Agenda signup sheet test
 
 on:
   push:
   schedule:
-    - cron: '0 1 * * 6,1' # Runs at 1am UTC on Saturday and Monday 
+    - cron: '0 16 * * 3' # Runs at 4:00pm UTC on Wednesday 
   workflow_dispatch: # manual trigger
 
 env:
@@ -27,4 +27,4 @@ jobs:
         echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
         echo "export LOGURU_LEVEL=DEBUG" >> .env
         echo "export TEAMS_WEBHOOK_URL=${{ env.TEAMS_WEBHOOK_URL }}" >> .env 
-        make test-signup-reminder
+        make test-signup-sheet

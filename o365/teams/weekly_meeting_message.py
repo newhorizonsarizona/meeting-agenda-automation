@@ -1,4 +1,7 @@
+import urllib
 from o365.agenda_excel import AgendaExcel
+from o365.util.date_util import DateUtil
+from o365.weekly_meeting_planner import WeeklyMeetingPlanner
 
 
 class WeeklyMeetingMessage:
@@ -292,4 +295,234 @@ class WeeklyMeetingMessage:
                 }
             ],
         }
+        return adaptive_card_message
+
+    @staticmethod
+    def adaptive_card_signup_sheet_message(meeting_date_role_assignments: dict, meeting_date_absentees: dict):
+        """get the adaptive card message for future signup reminder"""
+
+        adaptive_card_message = {
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.5",
+            "body": [
+                {
+                    "type": "Container",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Speaker/Functionary Role Signup Sheet",
+                            "weight": "bolder",
+                            "size": "large",
+                            "wrap": "true",
+                            "isMarkdown": "true",
+                        }
+                    ],
+                },
+                {
+                    "type": "Container",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Dear New Horizons Toastmasters Club members,",
+                            "size": "medium",
+                            "wrap": "true",
+                            "isMarkdown": "true",
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Please signup for a speaking or functionary role for an upcoming meeting.",
+                            "size": "medium",
+                            "wrap": "true",
+                            "isMarkdown": "true",
+                        },
+                    ],
+                },
+            ],
+        }
+
+        message_signup_sheet_header = {"type": "ColumnSet", "columns": []}
+        message_signup_sheet_header_cols = [
+            {
+                "type": "Column",
+                "width": "90px",
+                "items": [
+                    {
+                        "type": "TextBlock",
+                        "text": "Role",
+                        "weight": "Bolder",
+                        "wrap": "true",
+                        "size": "medium",
+                    }
+                ],
+            }
+        ]
+        meeting_dates = meeting_date_role_assignments.keys()
+        for meeting_date in meeting_dates:
+            message_signup_sheet_header_cols.append(
+                {
+                    "type": "Column",
+                    "width": "85px",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": f"{meeting_date.strftime('%m/%d/%Y')}",
+                            "size": "medium",
+                            "weight": "Bolder",
+                            "wrap": "true",
+                        }
+                    ],
+                },
+            )
+        message_signup_sheet_header["columns"] = message_signup_sheet_header_cols
+        adaptive_card_message["body"].append(message_signup_sheet_header)
+        weekly_meeting_planner = WeeklyMeetingPlanner()
+        functionary_roles = [
+            "Joke Master",
+            "Toastmaster",
+            "General Evaluator",
+            "Speaker 1",
+            "Speaker 2",
+            "Speaker 3",
+            "Manual Evaluator 1",
+            "Manual Evaluator 2",
+            "Manual Evaluator 3",
+            "Ah Counter",
+            "Grammarian",
+            "Timer",
+            "Ballot Counter",
+            "WOW",
+            "GEM",
+        ]
+
+        for role_name in functionary_roles:
+            message_signup_sheet_body = {"type": "ColumnSet", "columns": []}
+            message_signup_sheet_body_cols = [
+                {
+                    "type": "Column",
+                    "width": "90px",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": role_name,
+                            "weight": "Bolder",
+                            "wrap": "true",
+                            "size": "medium",
+                        }
+                    ],
+                }
+            ]
+            for meeting_date in meeting_dates:
+                # date_val = urllib.parse.quote(f"{meeting_date.strftime('%m/%d/%Y')} 7:00 PM")
+                # functionary_role_4_form = urllib.parse.quote(role_name)
+                # if "Speaker" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("Speaker")
+                # elif "Manual Evaluator" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("Manual Evaluator")
+                # elif "WOW" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("WOW (Words Of Wisdom)")
+                # elif "GEM" in role_name:
+                #     functionary_role_4_form = urllib.parse.quote("GEM (Great Educational Moment)")
+                message_text = "[Signup](https://forms.office.com/r/wjCgSjdbk6)"
+                #                 message_text = f"[Signup](https://forms.office.com/r/wjCgSjdbk6?\
+                # r9ac7132bd52447e2b6bcd479a021b876=%22{date_val}%22&\
+                # rc90e248ef4b146ecb89c31e0b4ca94c1=%22{functionary_role_4_form}%22)"
+                if meeting_date_role_assignments and meeting_date_role_assignments[meeting_date][role_name] is not None:
+                    message_text = weekly_meeting_planner.get_assigned_to_user(
+                        meeting_date_role_assignments[meeting_date][role_name]
+                    ).display_name
+                message_signup_sheet_body_cols.append(
+                    {
+                        "type": "Column",
+                        "width": "85px",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": message_text,
+                                "wrap": "true",
+                                "size": "medium",
+                                "isMarkdown": "true",
+                            },
+                        ],
+                    },
+                )
+            message_signup_sheet_body["columns"] = message_signup_sheet_body_cols
+            adaptive_card_message["body"].append(message_signup_sheet_body)
+
+        message_signup_sheet_absentee_body = {"type": "ColumnSet", "columns": []}
+        message_signup_sheet_absentee_body_cols = [
+            {
+                "type": "Column",
+                "width": "90px",
+                "items": [
+                    {
+                        "type": "TextBlock",
+                        "text": "Absent",
+                        "weight": "Bolder",
+                        "wrap": "true",
+                        "size": "medium",
+                    }
+                ],
+            }
+        ]
+
+        for meeting_date in meeting_dates:
+            date_val = urllib.parse.quote(f"{meeting_date.strftime('%m/%d/%Y')} 7:00 PM")
+            absentee_member_names = ""
+            if meeting_date_absentees:
+                for absentee_task in meeting_date_absentees[meeting_date]:
+                    absentee_member_name = weekly_meeting_planner.get_assigned_to_user(absentee_task).display_name
+                    absentee_member_names = absentee_member_name + "\n"
+            message_signup_sheet_absentee_body_cols.append(
+                {
+                    "type": "Column",
+                    "width": "85px",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": f"{absentee_member_names}[Signup](https://forms.office.com/r/wjCgSjdbk6)",
+                            # ?r9ac7132bd52447e2b6bcd479a021b876=%22{date_val}%22&\
+                            # rc90e248ef4b146ecb89c31e0b4ca94c1=%22Absent%22)",
+                            "wrap": "true",
+                            "size": "medium",
+                            "isMarkdown": "true",
+                        },
+                    ],
+                },
+            )
+        message_signup_sheet_absentee_body["columns"] = message_signup_sheet_absentee_body_cols
+        adaptive_card_message["body"].append(message_signup_sheet_absentee_body)
+        message_footer = {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "TextBlock",
+                    "text": "If you have read the [Toastmasters promise](https://newhorizonsarizonaorg.sharepoint.com"
+                    "/sites/NewHorizonsArizonaToastmastersClub/Shared%20Documents/Forms/AllItems.aspx?"
+                    "id=%2Fsites%2FNewHorizonsArizonaToastmastersClub%2FShared%20Documents%2FGeneral%2F2023"
+                    "ToastmastersPromise%2EPDF&parent=%2Fsites%2FNewHorizonsArizonaToastmastersClub"
+                    "%2FShared%20Documents%2FGeneral&p=true&ct=1730320650666"
+                    "&or=Teams%2DHL&ga=1&LOF=1) and are certain that you are going to "
+                    "miss the meeting, please mark yourself as absent.",
+                    "size": "medium",
+                    "wrap": "true",
+                    "isMarkdown": "true",
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "Best Regards,",
+                    "size": "medium",
+                    "wrap": "true",
+                    "isMarkdown": "true",
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "NHTM Education Committee",
+                    "size": "medium",
+                    "wrap": "true",
+                    "isMarkdown": "true",
+                },
+            ],
+        }
+        adaptive_card_message["body"].append(message_footer)
         return adaptive_card_message
