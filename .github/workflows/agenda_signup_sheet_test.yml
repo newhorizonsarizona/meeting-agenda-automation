@@ -1,7 +1,6 @@
 name: Agenda signup sheet test
 
 on:
-  push:
   schedule:
     - cron: '0 16 * * 3' # Runs at 4:00pm UTC on Wednesday 
   workflow_dispatch: # manual trigger

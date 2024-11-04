@@ -94,7 +94,7 @@ class AgendaNotifier(AgendaCreator):
         """Send the agenda notification on teams"""
         logger.info("Preparing agenda notification")
         try:
-            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year:
+            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year():
                 logger.info(
                     "Skip sending the agenda notification as we are having a break on {self._next_tuesday_date_us}"
                 )
@@ -153,7 +153,7 @@ class AgendaNotifier(AgendaCreator):
         """Send the agenda signup reminder notification on teams"""
         logger.info("Preparing agenda signup reminder notification")
         try:
-            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year:
+            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year():
                 logger.info("Skip sending the signup reminderas we are having a break on {self._next_tuesday_date_us}")
                 return
             drive = self.get_drive()
