@@ -1,9 +1,11 @@
 import asyncio
-import datetime
+from datetime import datetime
 import json
 import time
 import sys
 from loguru import logger
+from msgraph.generated.models.planner_task import PlannerTask
+from msgraph.generated.models.planner_assignments import PlannerAssignments
 from o365.agenda_excel import AgendaExcel
 from o365.util.constants import Constants
 from o365.util.meeting_util import MeetingUtil
@@ -281,7 +283,7 @@ class AgendaCreator:
             )
             if bucket is None:
                 raise AgendaException(f"No matching bucket found for next week in plan {plan.id}")
-            tasks = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket.id)
+            tasks = self._fetch_tasks_in_bucket(bucket.id)
             if tasks is None:
                 raise AgendaException("No matching tasks found for next the meeting next week")
             meeting_assignments: dict = {}
@@ -298,6 +300,35 @@ class AgendaCreator:
         except Exception as e:
             raise AgendaException(f"An unexpected error occurred while getting the meeting assignments. {e}")
 
+    # GET https://graph.microsoft.com/v1.0/planner/buckets/{bucket-id}/tasks
+    def _fetch_tasks_in_bucket(self, bucket_id):
+        """Fetches the tasks in a planner bucket with specified id"""
+        try:
+            logger.debug(f"Fetching the planner tasks from buucket {bucket_id}")
+            graph_helper: GraphHelper = GraphHelper()
+            tasks = graph_helper.get_request(
+                f"planner/buckets/{bucket_id}/tasks",
+                {"Content-Type": "application/json"},
+            )
+            if tasks and tasks["value"] is not None:
+                logger.debug(f"Found {len(tasks['value'])} tasks in bucket {bucket_id}.")
+                planner_tasks = []
+                for task in tasks['value']:
+                    planner_task = PlannerTask()
+                    planner_task.id = task["id"]
+                    planner_task.title = task["title"]
+                    planner_task.percent_complete = task["percentComplete"]
+                    planner_task.priority = task["priority"]
+                    planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
+                    if task["assignments"] is not None:
+                        planner_task.assignments = PlannerAssignments(additional_data = task["assignments"])
+                    planner_tasks.append(planner_task)
+                logger.debug(f"Tasks: {planner_tasks}")
+                return planner_tasks
+        except AgendaException as e:
+            logger.error(f"Error getting tasks from bucket { {bucket_id}}. {e}")
+        return None
+    
     def populate_agenda_worksheet(self, drive, next_meeting_agenda_excel_item_id: str, meeting_assignments: dict):
         """Populate the meeting assignments in the agenda excel worksheet"""
         try:

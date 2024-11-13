@@ -3,6 +3,8 @@ import json
 from datetime import date, datetime
 import time
 from loguru import logger
+from msgraph.generated.models.planner_task import PlannerTask
+from msgraph.generated.models.planner_assignments import PlannerAssignments
 from o365.auth.auth_helper import AuthHelper
 from o365.exception.agenda_exception import AgendaException
 from o365.planner.planner_helper import PlannerHelper
@@ -66,7 +68,7 @@ class WeeklyMeetingPlanner:
             self._graph_client, Constants.WEEKLY_MEETING_TEMPLATE_PLAN_ID, "YYYYMMDD Meeting Roles"
         )
         tasks_in_template_bucket = []
-        tmp_tasks_in_template_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, template_bucket.id)
+        tmp_tasks_in_template_bucket = self._fetch_tasks_in_bucket(template_bucket.id)
         for tmp_task_in_template_bucket in tmp_tasks_in_template_bucket:
             tasks_in_template_bucket.append(
                 {"id": tmp_task_in_template_bucket.id, "title": tmp_task_in_template_bucket.title}
@@ -80,7 +82,7 @@ class WeeklyMeetingPlanner:
             if bucket_details["bucket_name"] == "To do":
                 # PlannerHelper.delete_bucket_by_name(self._graph_client, bucket_id, etag)
                 continue
-            tasks_in_bucket_4_plan = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, bucket_id)
+            tasks_in_bucket_4_plan = self._fetch_tasks_in_bucket(bucket_id)
             logger.debug(f"Tasks in template bucket: {tasks_in_template_bucket}")
             template_tasks_index = len(tasks_in_template_bucket) - 1
             # Preserve order of tasks by looping in reverse with the provided order hint
@@ -166,6 +168,35 @@ class WeeklyMeetingPlanner:
                 template_tasks_index -= 1
             del tasks_in_bucket_4_plan
 
+    # GET https://graph.microsoft.com/v1.0/planner/buckets/{bucket-id}/tasks
+    def _fetch_tasks_in_bucket(self, bucket_id):
+        """Fetches the tasks in a planner bucket with specified id"""
+        try:
+            logger.debug(f"Fetching the planner tasks from buucket {bucket_id}")
+            graph_helper: GraphHelper = GraphHelper()
+            tasks = graph_helper.get_request(
+                f"planner/buckets/{bucket_id}/tasks",
+                {"Content-Type": "application/json"},
+            )
+            if tasks and tasks["value"] is not None:
+                logger.debug(f"Found {len(tasks['value'])} tasks in bucket {bucket_id}.")
+                planner_tasks = []
+                for task in tasks['value']:
+                    planner_task = PlannerTask()
+                    planner_task.id = task["id"]
+                    planner_task.title = task["title"]
+                    planner_task.percent_complete = task["percentComplete"]
+                    planner_task.priority = task["priority"]
+                    planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
+                    if task["assignments"] is not None:
+                        planner_task.assignments = PlannerAssignments(additional_data = task["assignments"])
+                    planner_tasks.append(planner_task)
+                logger.debug(f"Tasks: {planner_tasks}")
+                return planner_tasks
+        except AgendaException as e:
+            logger.error(f"Error getting tasks from bucket { {bucket_id}}. {e}")
+        return None
+    
     # PATCH https://graph.microsoft.com/v1.0/planner/tasks/{task-id}
     # Content-type: application/json
     # Prefer: return=representation
@@ -335,7 +366,7 @@ class WeeklyMeetingPlanner:
         if next_weeks_bucket is None:
             logger.error(f"Next weeks bucket '{self._next_tuesday_date}' was not found.")
             return
-        tasks_in_next_weeks_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, next_weeks_bucket.id)
+        tasks_in_next_weeks_bucket = self._fetch_tasks_in_bucket(next_weeks_bucket.id)
         if tasks_in_next_weeks_bucket is None:
             logger.info(f"There are no new tasks in the '{self._next_tuesday_date}' bucket.")
             return
@@ -385,7 +416,7 @@ class WeeklyMeetingPlanner:
         if signup_bucket is None:
             logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
             return
-        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        tmp_tasks_in_signup_bucket = self._fetch_tasks_in_bucket(signup_bucket.id)
         if tmp_tasks_in_signup_bucket is None:
             logger.info("There are no new task signups in the 'Functionary Role' bucket.")
             return
@@ -416,7 +447,7 @@ class WeeklyMeetingPlanner:
         if next_weeks_bucket is None:
             logger.error(f"Next weeks bucket '{self._next_tuesday_date}' was not found.")
             return
-        tasks_in_next_weeks_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, next_weeks_bucket.id)
+        tasks_in_next_weeks_bucket = self._fetch_tasks_in_bucket(next_weeks_bucket.id)
         if tasks_in_next_weeks_bucket is None:
             logger.info(f"There are no new tasks in the '{self._next_tuesday_date}' bucket.")
             return
@@ -462,7 +493,7 @@ class WeeklyMeetingPlanner:
         if signup_bucket is None:
             logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
             return functionary_signups
-        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        tmp_tasks_in_signup_bucket = self._fetch_tasks_in_bucket(signup_bucket.id)
         if tmp_tasks_in_signup_bucket is None:
             logger.info("There are no new task signups in the 'Functionary Role' bucket.")
             return functionary_signups
@@ -524,7 +555,7 @@ class WeeklyMeetingPlanner:
         if signup_bucket is None:
             logger.error("The Weekly Meeting Plan bucket 'Functionary Role' was not found.")
             return absentee_signups
-        tmp_tasks_in_signup_bucket = PlannerHelper.fetch_tasks_in_bucket(self._graph_client, signup_bucket.id)
+        tmp_tasks_in_signup_bucket = self._fetch_tasks_in_bucket(signup_bucket.id)
         if tmp_tasks_in_signup_bucket is None:
             logger.info("There are no new task signups in the 'Functionary Role' bucket.")
             return absentee_signups
