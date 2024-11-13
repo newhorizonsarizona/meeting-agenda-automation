@@ -336,6 +336,12 @@ class PlannerHelper:
                 tasks = asyncio.run(PlannerHelper.get_tasks_in_bucket(graph_client, bucket_id))
                 if tasks and tasks.value:
                     return tasks.value
+            except IndexError as ie:
+                if "string index out of range" in str(ie):
+                    if retry_count < 10:
+                        logger.error(f"An index out of range error occurred getting tasks from bucket. {ie}. Retrying..")
+                        retry_count = retry_count + 1
+                        time.sleep(10)
             except RuntimeError as e:
                 if "Event loop is closed" in str(e):
                     if retry_count < 10:
