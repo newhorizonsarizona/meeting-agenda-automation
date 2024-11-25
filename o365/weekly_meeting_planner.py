@@ -187,7 +187,8 @@ class WeeklyMeetingPlanner:
                     planner_task.title = task["title"]
                     planner_task.percent_complete = task["percentComplete"]
                     planner_task.priority = task["priority"]
-                    planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
+                    if task["dueDateTime"] is not None:
+                        planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
                     if task["assignments"] is not None:
                         planner_task.assignments = PlannerAssignments(additional_data = task["assignments"])
                     planner_tasks.append(planner_task)
