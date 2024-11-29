@@ -12,7 +12,6 @@ from msgraph.generated.models.planner_plan import PlannerPlan
 from msgraph.generated.models.planner_plan_container import PlannerPlanContainer
 from msgraph.generated.models.planner_bucket import PlannerBucket
 from msgraph.generated.models.planner_task import PlannerTask
-from msgraph.generated.models.planner_assignments import PlannerAssignments
 from kiota_abstractions.api_error import APIError
 
 
@@ -339,7 +338,9 @@ class PlannerHelper:
             except IndexError as ie:
                 if "string index out of range" in str(ie):
                     if retry_count < 10:
-                        logger.error(f"An index out of range error occurred getting tasks from bucket. {ie}. Retrying..")
+                        logger.error(
+                            f"An index out of range error occurred getting tasks from bucket. {ie}. Retrying.."
+                        )
                         retry_count = retry_count + 1
                         time.sleep(10)
             except RuntimeError as e:
@@ -465,7 +466,7 @@ class PlannerHelper:
     ):
         """Creates a task with with specified name, due date, assignment in the specified bucket_id for plan_id"""
         retry_count = 0
-        while retry_count < 2:
+        while retry_count < 1:  # prevent duplicates
             try:
                 logger.debug(f"Creating the task with name {task_title}, in bucket {bucket_id}")
                 request_body = PlannerTask(

@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-import json
 import time
 import sys
 from loguru import logger
@@ -313,22 +312,23 @@ class AgendaCreator:
             if tasks and tasks["value"] is not None:
                 logger.debug(f"Found {len(tasks['value'])} tasks in bucket {bucket_id}.")
                 planner_tasks = []
-                for task in tasks['value']:
+                for task in tasks["value"]:
                     planner_task = PlannerTask()
                     planner_task.id = task["id"]
                     planner_task.title = task["title"]
                     planner_task.percent_complete = task["percentComplete"]
                     planner_task.priority = task["priority"]
-                    planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
+                    if task["dueDateTime"] is not None:
+                        planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
                     if task["assignments"] is not None:
-                        planner_task.assignments = PlannerAssignments(additional_data = task["assignments"])
+                        planner_task.assignments = PlannerAssignments(additional_data=task["assignments"])
                     planner_tasks.append(planner_task)
                 logger.debug(f"Tasks: {planner_tasks}")
                 return planner_tasks
         except AgendaException as e:
             logger.error(f"Error getting tasks from bucket { {bucket_id}}. {e}")
         return None
-    
+
     def populate_agenda_worksheet(self, drive, next_meeting_agenda_excel_item_id: str, meeting_assignments: dict):
         """Populate the meeting assignments in the agenda excel worksheet"""
         try:
