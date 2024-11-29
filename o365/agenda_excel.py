@@ -1,11 +1,11 @@
 import asyncio
 import json
 import time
+from loguru import logger
 from o365.auth.auth_helper import AuthHelper
 from o365.excel.excel_helper import ExcelHelper
 from o365.excel.range_assignments import RangeAssignments
 from o365.excel.range_assignments_reverse import RangeAssignmentsReverse
-from loguru import logger
 from o365.exception.agenda_exception import AgendaException
 from o365.graph.graph_helper import GraphHelper
 
@@ -28,7 +28,7 @@ class AgendaExcel:
         self._agenda_worksheet_id = self._get_agenda_worksheet_id(drive_id, agenda_excel_item_id)
 
     @property
-    def all_functionary_role_assignments(self) -> dict:
+    def all_func_role_assignments(self) -> dict:
         """Get the functionary role assignments from the agenda excel"""
         functionary_role_assignments: dict = {}
         range_assignments_map: dict = self._range_assignments.range_assignments_map["G5:G41"]
@@ -47,7 +47,7 @@ class AgendaExcel:
                 assigned_member = range_values[0][0]
                 if assigned_member is not None:
                     assigned_member = str(assigned_member).strip()
-                    if assigned_member == "0" or assigned_member == "":
+                    if assigned_member in ["0", ""]:
                         assigned_member = None
                 functionary_role_assignments[range_assignment_value_col_value] = assigned_member
             range_row += 1

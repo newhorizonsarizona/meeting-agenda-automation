@@ -1,6 +1,4 @@
-import urllib
 from o365.agenda_excel import AgendaExcel
-from o365.util.date_util import DateUtil
 from o365.weekly_meeting_planner import WeeklyMeetingPlanner
 
 
@@ -214,7 +212,7 @@ class WeeklyMeetingMessage:
                         on [{meeting_agenda_item['name']}]({meeting_agenda_item['webUrl']})"
         )
         _message_part2: str = ""
-        for role_name, assignment_member in agenda_excel.all_functionary_role_assignments.items():
+        for role_name, assignment_member in agenda_excel.all_func_role_assignments.items():
             if assignment_member is None:
                 _message_part2 += f"* {role_name}\n\n"
         if _message_part2 == "":
@@ -467,7 +465,6 @@ class WeeklyMeetingMessage:
         ]
 
         for meeting_date in meeting_dates:
-            date_val = urllib.parse.quote(f"{meeting_date.strftime('%m/%d/%Y')} 7:00 PM")
             absentee_member_names = ""
             if meeting_date_absentees:
                 for absentee_task in meeting_date_absentees[meeting_date]:

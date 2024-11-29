@@ -3,10 +3,9 @@ import datetime
 import logging
 
 import azure.functions as func
+from agenda_creator import AgendaCreator
 
 sys.path.append("../")
-
-from agenda_creator import AgendaCreator
 
 
 def main(mytimer: func.TimerRequest) -> None:

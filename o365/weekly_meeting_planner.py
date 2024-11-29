@@ -5,6 +5,9 @@ import time
 from loguru import logger
 from msgraph.generated.models.planner_task import PlannerTask
 from msgraph.generated.models.planner_assignments import PlannerAssignments
+from msgraph.generated.models.planner_task_details import PlannerTaskDetails
+from msgraph.generated.models.planner_preview_type import PlannerPreviewType
+from msgraph.generated.models.planner_external_references import PlannerExternalReferences
 from o365.auth.auth_helper import AuthHelper
 from o365.exception.agenda_exception import AgendaException
 from o365.planner.planner_helper import PlannerHelper
@@ -102,14 +105,17 @@ class WeeklyMeetingPlanner:
                         template_tasks_index -= 1
                         continue
                 logger.debug(f"Creating task from template: {task_in_template_bucket}")
-                new_task = PlannerHelper.create_task_in_bucket(
-                    self._graph_client,
-                    bucket_id,
-                    plan_id,
-                    task_in_template_bucket["title"],
-                    order_hint,
+                planner_task = PlannerHelper.get_task_by_name(
+                    self._graph_client, bucket_id, task_in_template_bucket["title"]
                 )
-                if new_task:
+                if planner_task is None:
+                    new_task = PlannerHelper.create_task_in_bucket(
+                        self._graph_client,
+                        bucket_id,
+                        plan_id,
+                        task_in_template_bucket["title"],
+                        order_hint,
+                    )
                     bucket_details["tasks_info"].append({"id": new_task.id, "title": new_task.title})
                 template_tasks_index -= 1
             del tasks_in_bucket_4_plan
@@ -155,9 +161,7 @@ class WeeklyMeetingPlanner:
                                 f"Updating task details for task with\
                                       name {task_in_bucket_4_plan['title']} in bucket id {bucket_id}"
                             )
-                            task_details_in_template = PlannerHelper.fetch_task_details(
-                                self._graph_client, task_in_template_bucket["id"]
-                            )
+                            task_details_in_template = self._fetch_task_details(task_in_template_bucket["id"])
                             logger.debug(task_in_bucket_4_plan)
                             self._update_planner_task_details(
                                 task_in_bucket_4_plan["id"],
@@ -168,11 +172,27 @@ class WeeklyMeetingPlanner:
                 template_tasks_index -= 1
             del tasks_in_bucket_4_plan
 
+    def _fill_planner_task_from_dict(self, task: dict):
+        """Fills the PlannerTask from provided dictionary"""
+        planner_task = PlannerTask()
+        if task is None:
+            return None
+        planner_task.id = task["id"]
+        planner_task.bucket_id = task["bucketId"]
+        planner_task.title = task["title"]
+        planner_task.percent_complete = task["percentComplete"]
+        planner_task.priority = task["priority"]
+        if task["dueDateTime"] is not None:
+            planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
+        if task["assignments"] is not None:
+            planner_task.assignments = PlannerAssignments(additional_data=task["assignments"])
+        return planner_task
+
     # GET https://graph.microsoft.com/v1.0/planner/buckets/{bucket-id}/tasks
     def _fetch_tasks_in_bucket(self, bucket_id):
         """Fetches the tasks in a planner bucket with specified id"""
         try:
-            logger.debug(f"Fetching the planner tasks from buucket {bucket_id}")
+            logger.debug(f"Fetching the planner tasks from bucket {bucket_id}")
             graph_helper: GraphHelper = GraphHelper()
             tasks = graph_helper.get_request(
                 f"planner/buckets/{bucket_id}/tasks",
@@ -181,23 +201,94 @@ class WeeklyMeetingPlanner:
             if tasks and tasks["value"] is not None:
                 logger.debug(f"Found {len(tasks['value'])} tasks in bucket {bucket_id}.")
                 planner_tasks = []
-                for task in tasks['value']:
-                    planner_task = PlannerTask()
-                    planner_task.id = task["id"]
-                    planner_task.title = task["title"]
-                    planner_task.percent_complete = task["percentComplete"]
-                    planner_task.priority = task["priority"]
-                    if task["dueDateTime"] is not None:
-                        planner_task.due_date_time = datetime.strptime(task["dueDateTime"], "%Y-%m-%dT%H:%M:%SZ")
-                    if task["assignments"] is not None:
-                        planner_task.assignments = PlannerAssignments(additional_data = task["assignments"])
-                    planner_tasks.append(planner_task)
+                for task in tasks["value"]:
+                    planner_tasks.append(self._fill_planner_task_from_dict(task))
                 logger.debug(f"Tasks: {planner_tasks}")
                 return planner_tasks
         except AgendaException as e:
             logger.error(f"Error getting tasks from bucket { {bucket_id}}. {e}")
         return None
-    
+
+    # GET https://graph.microsoft.com/v1.0/planner/tasks/{id}
+    def _fetch_task(self, task_id):
+        """Fetches the planner task with specified id"""
+        try:
+            logger.debug(f"Fetching the planner task with id {task_id}")
+            graph_helper: GraphHelper = GraphHelper()
+            task = graph_helper.get_request(
+                f"planner/tasks/{task_id}",
+                {"Content-Type": "application/json"},
+            )
+            if task is not None:
+                logger.debug(f"Found task with id {task_id}.")
+                planner_task = self._fill_planner_task_from_dict(task)
+                logger.debug(f"Task: {planner_task}")
+                return planner_task
+        except AgendaException as e:
+            logger.error(f"Error getting task with id { {task_id}}. {e}")
+        return None
+
+    # GET https://graph.microsoft.com/v1.0/planner/tasks/{id}
+    def _fetch_task_etag(self, task_id):
+        """Fetches the etag for planner task with specified id"""
+        try:
+            logger.debug(f"Fetching the etag for planner task with id {task_id}")
+            graph_helper: GraphHelper = GraphHelper()
+            task = graph_helper.get_request(
+                f"planner/tasks/{task_id}",
+                {"Content-Type": "application/json"},
+            )
+            if task is not None:
+                logger.debug(f"Found task with id {task_id}.")
+                etag = task["@odata.etag"]
+                logger.debug(f"Task etag: {etag}")
+                return etag
+        except AgendaException as e:
+            logger.error(f"Error getting etag for the task with id { {task_id}}. {e}")
+        return None
+
+    # GET https://graph.microsoft.com/v1.0/planner/tasks/{id}/details
+    def _fetch_task_details(self, task_id):
+        """Fetches the details in a planner task with specified id"""
+        try:
+            logger.debug(f"Fetching the planner tasks details from task {task_id}")
+            graph_helper: GraphHelper = GraphHelper()
+            task_details = graph_helper.get_request(
+                f"planner/tasks/{task_id}/details",
+                {"Content-Type": "application/json"},
+            )
+            if task_details is not None:
+                logger.debug(f"Found task details for task {task_id}.")
+                planner_task_details = PlannerTaskDetails(
+                    description=task_details["description"],
+                    preview_type=PlannerPreviewType.NoPreview,
+                    references=PlannerExternalReferences(additional_data=task_details["references"]),
+                )
+                logger.debug(f"Task Details: {planner_task_details}")
+                return planner_task_details
+        except AgendaException as e:
+            logger.error(f"Error getting task details from task { {task_id}}. {e}")
+        return None
+
+    # GET https://graph.microsoft.com/v1.0/planner/tasks/{id}/details
+    def _fetch_task_details_etag(self, task_id):
+        """Fetches the etag for planner task detail with specified id"""
+        try:
+            logger.debug(f"Fetching the etag for planner task details with id {task_id}")
+            graph_helper: GraphHelper = GraphHelper()
+            task_details = graph_helper.get_request(
+                f"planner/tasks/{task_id}/details",
+                {"Content-Type": "application/json"},
+            )
+            if task_details is not None:
+                logger.debug(f"Found details of task with id {task_id}.")
+                etag = task_details["@odata.etag"]
+                logger.debug(f"Task details etag: {etag}")
+                return etag
+        except AgendaException as e:
+            logger.error(f"Error getting etag for the task details with id { {task_id}}. {e}")
+        return None
+
     # PATCH https://graph.microsoft.com/v1.0/planner/tasks/{task-id}
     # Content-type: application/json
     # Prefer: return=representation
@@ -226,7 +317,7 @@ class WeeklyMeetingPlanner:
         """Update the planner task"""
         try:
             logger.debug(f"Updating the planner task {task_id}")
-            task = PlannerHelper.fetch_task(self._graph_client, task_id)
+            task = self._fetch_task(task_id)
             assignments = {}
             if assigned_user_id is not None:
                 if unassign_user:
@@ -243,7 +334,7 @@ class WeeklyMeetingPlanner:
                 "dueDateTime": due_date_time,
                 "percentComplete": percent_complete,
             }
-            etag = task.additional_data["@odata.etag"]
+            etag = self._fetch_task_etag(task_id)
             graph_helper: GraphHelper = GraphHelper()
             data_json = json.dumps(task_data)
             logger.debug(data_json)
@@ -295,7 +386,7 @@ class WeeklyMeetingPlanner:
         """Update the planner task details"""
         try:
             logger.debug(f"Updating the planner task details for task {task_id}")
-            task_details = PlannerHelper.fetch_task_details(self._graph_client, task_id)
+            task_details = self._fetch_task_details(task_id)
             logger.debug(task_details)
             task_detail_references = {}
             order_hint = " !"
@@ -312,7 +403,7 @@ class WeeklyMeetingPlanner:
                 "description": description,
                 "references": task_detail_references,
             }
-            etag = task_details.additional_data["@odata.etag"]
+            etag = self._fetch_task_details_etag(task_id)
             graph_helper: GraphHelper = GraphHelper()
             logger.debug(f"task details dict: {task_details_2_update}")
             data_json = json.dumps(task_details_2_update)
@@ -395,7 +486,8 @@ class WeeklyMeetingPlanner:
                     ):
                         continue
                     logger.debug(
-                        f"Assigining '{signup_assigned_to_user.display_name}' as '{functionary_role_name}' for next week."
+                        f"Assigining '{signup_assigned_to_user.display_name}' as"
+                        " '{functionary_role_name}' for next week."
                     )
                     self._update_planner_task(
                         task_id=next_weeks_task.id,
@@ -514,7 +606,7 @@ class WeeklyMeetingPlanner:
                 speaker_count = 1
                 manual_evaluator_count = 1
                 if "Speaker" in tmp_signup_task.title:
-                    while speaker_count <= 3 and functionary_signups[f"Speaker {speaker_count}"] != None:
+                    while speaker_count <= 3 and functionary_signups[f"Speaker {speaker_count}"] is not None:
                         speaker_count += 1
                         continue
                     if speaker_count == 3:
@@ -525,7 +617,7 @@ class WeeklyMeetingPlanner:
                 if "Manual Evaluator" in tmp_signup_task.title:
                     while (
                         manual_evaluator_count <= 3
-                        and functionary_signups[f"Manual Evaluator {manual_evaluator_count}"] != None
+                        and functionary_signups[f"Manual Evaluator {manual_evaluator_count}"] is not None
                     ):
                         manual_evaluator_count += 1
                         continue

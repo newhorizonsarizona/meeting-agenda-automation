@@ -1,7 +1,7 @@
 import asyncio
 import datetime
-from loguru import logger
 import time
+from loguru import logger
 
 from msgraph import GraphServiceClient
 from msgraph.generated.teams.item.channels.channels_request_builder import (
