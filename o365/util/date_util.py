@@ -28,7 +28,7 @@ class DateUtil:
         next_date = self.next_tuesday
         i = 1
         while i <= 4:
-            if next_date not in self.get_last_two_tuesdays_of_year():
+            if next_date.strftime("%m/%d/%Y") not in self.get_last_two_tuesdays_of_year():
                 logger.debug(f"Adding: {next_date}")
                 upcoming_tuesdays.append(next_date)
             next_date = next_date + timedelta(1) + timedelta((0 - next_date.weekday()) % 7)
@@ -116,4 +116,7 @@ class DateUtil:
         # Find the second last Tuesday by subtracting 7 days from the last Tuesday
         second_last_tuesday = last_tuesday - timedelta(days=7)
 
-        return [second_last_tuesday, last_tuesday]
+        return [
+            datetime.datetime.strftime(second_last_tuesday, "%m/%d/%Y"),
+            datetime.datetime.strftime(last_tuesday, "%m/%d/%Y"),
+        ]

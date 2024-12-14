@@ -349,7 +349,7 @@ class AgendaCreator:
         """Get the planner tasks for next meeting"""
         logger.info("Checking if the meeting docs folder and agenda exist")
         try:
-            if self._next_tuesday in DateUtil().get_last_two_tuesdays_of_year():
+            if self._next_tuesday_date_us in DateUtil().get_last_two_tuesdays_of_year():
                 logger.info("Skip creating the agenda as we are having a break on {self._next_tuesday_date_us}")
                 return
             drive = self.get_drive()
