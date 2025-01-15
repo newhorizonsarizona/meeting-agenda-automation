@@ -15,18 +15,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: 3.10
-    
-    - name: Prepare Python
-      run: pip3 install pipenv && pipenv install --dev
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Test Agenda Signup Reminder
-      if: ${{ github.ref == 'refs/heads/main' && env.TEAMS_WEBHOOK_URL != '' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
-      run: |
-        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
-        echo "export LOGURU_LEVEL=DEBUG" >> .env
-        echo "export TEAMS_WEBHOOK_URL=${{ env.TEAMS_WEBHOOK_URL }}" >> .env 
-        make test-signup-sheet
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Prepare Python
+        run: pip3 install pipenv && pipenv install --dev
+
+      - name: Test Agenda Signup Reminder
+        if: ${{ github.ref == 'refs/heads/main' && env.TEAMS_WEBHOOK_URL != '' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        run: |
+          echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+          echo "export LOGURU_LEVEL=DEBUG" >> .env
+          echo "export TEAMS_WEBHOOK_URL=${{ env.TEAMS_WEBHOOK_URL }}" >> .env 
+          make test-signup-sheet

@@ -17,33 +17,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Prepare Python
-      run: pip3 install pipenv && pipenv install --dev
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Test Python
-      if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-      run: make test-python
-      
-    - name: Test Agenda Notification
-      if: ${{ github.ref == 'refs/heads/main' && env.TEST_USER_AUTH_CODE != '' && github.event_name == 'workflow_dispatch'}}
-      run: |
-        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
-        echo "export LOGURU_LEVEL=DEBUG" >> .env
-        echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> .env 
-        make test-agenda-notify
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Test Agenda Webhook Notification
-      if: ${{ github.ref == 'refs/heads/main' && env.TEAMS_WEBHOOK_URL != '' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
-      run: |
-        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
-        echo "export LOGURU_LEVEL=DEBUG" >> .env
-        echo "export TEAMS_WEBHOOK_URL=${{ env.TEAMS_WEBHOOK_URL }}" >> .env 
-        make test-agenda-notify
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Prepare Python
+        run: pip3 install pipenv && pipenv install --dev
+
+      - name: Test Python
+        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+        run: make test-python
+        
+      - name: Test Agenda Notification
+        if: ${{ github.ref == 'refs/heads/main' && env.TEST_USER_AUTH_CODE != '' && github.event_name == 'workflow_dispatch'}}
+        run: |
+          echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+          echo "export LOGURU_LEVEL=DEBUG" >> .env
+          echo "export USER_AUTH_CODE=$TEST_USER_AUTH_CODE" >> .env 
+          make test-agenda-notify
+
+      - name: Test Agenda Webhook Notification
+        if: ${{ github.ref == 'refs/heads/main' && env.TEAMS_WEBHOOK_URL != '' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        run: |
+          echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+          echo "export LOGURU_LEVEL=DEBUG" >> .env
+          echo "export TEAMS_WEBHOOK_URL=${{ env.TEAMS_WEBHOOK_URL }}" >> .env 
+          make test-agenda-notify

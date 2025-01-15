@@ -12,14 +12,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Prepare Python
-      run: pip3 install pipenv && pipenv install --dev
-      
-    - name: Test Weekly Meeting Plan Deletion
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: |
-        echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
-        echo "export LOGURU_LEVEL=DEBUG" >> .env
-        make test-planner-delete
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Prepare Python
+        run: pip3 install pipenv && pipenv install --dev
+        
+      - name: Test Weekly Meeting Plan Deletion
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          echo "export CLIENT_SECRET=$TEST_CLIENT_SECRET" > .env
+          echo "export LOGURU_LEVEL=DEBUG" >> .env
+          make test-planner-delete
